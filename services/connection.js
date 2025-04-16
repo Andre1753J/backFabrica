@@ -7,3 +7,5 @@ const pool = mysql.createPool({
     password: '12345678',
     database: 'petsworld_db'
 })
+
+export default pool;
