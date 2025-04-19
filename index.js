@@ -1,7 +1,7 @@
 import express from "express";
 import cors from 'cors';
-import { cadastrar, login } from './services/cadastrar.js';
-import { cadastropt2, editar } from "./services/editar.js";
+import { cadastrar, login } from './services/cadastrar_C.js';
+import { cadastropt2, editar } from "./services/editar_C.js";
 
 const app = express();
 
