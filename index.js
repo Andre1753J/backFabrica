@@ -3,6 +3,7 @@ import cors from 'cors';
 import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
+import { editar_A } from "./services/editar_A.js";
 
 const app = express();
 
@@ -82,6 +83,28 @@ app.post('/cadastrar_a/:key', async (req, res) => {
     } else {
         try {
             const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
+            if (retorno.affectedRows > 0) {
+                res.status(200).json({ response: "Afetou ai tlg" });
+            }
+            else {
+                res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+            }
+        }
+        catch (error) {
+            res.status(400).json({ response: error.message });
+        }
+
+    }
+})
+
+app.patch('/editar_a/:key', async (req, res) => {
+    const { key } = req.params;
+    const { nome, idade, sexo, disponivel, adotador } = req.body;
+    if (nome == undefined && idade == undefined && sexo == undefined && disponivel == undefined && adotador == undefined) {
+        res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
+    } else {
+        try {
+            const retorno = await editar_A(key, nome, idade, sexo, disponivel, adotador);
             if (retorno.affectedRows > 0) {
                 res.status(200).json({ response: "Afetou ai tlg" });
             }
