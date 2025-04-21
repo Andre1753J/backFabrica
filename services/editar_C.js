@@ -1,4 +1,5 @@
 import pool from "./connection.js";
+import { quebrarKey } from "./quebraKey.js";
 
 async function executaQuery(conexao, query, params) {
     const resposta_query = await conexao.execute(query, params);
@@ -9,10 +10,9 @@ export async function cadastropt2(key, nome, cpf, estado, rua, cep, complemento,
     const conexao = await pool.getConnection();
     console.log(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
 
-    const [id, ...rest] = key.split("=-=");
-    const after = rest.join("=-=");
-    const [email, ...rest2] = after.split("=-=");
-    const senha = rest2.join('=-=');
+    const keyParts = quebrarKey(key);
+    const id = keyParts[0];
+    const senha = keyParts[2];
 
     const retorno = await temComplemento(conexao, nome, cpf, estado, rua, cep, complemento, dt_nascimento, id, email, senha);
 
