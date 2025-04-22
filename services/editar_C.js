@@ -53,6 +53,11 @@ export async function editar(key, nome, cpf, estado, rua, cep, complemento, dt_n
     const [email, ...rest2] = after.split("=-=");
     const senha = rest2.join('=-=');
 
+    // const keyParts = quebrarKey(key);
+    // const id = keyParts[0];
+    // const email = keyParts[1];
+    // const senha = keyParts[2];
+
     // Construir dinamicamente a cláusula SET
     const setClause = Object.keys(campos)
         .map((campo) => `${campo} = ?`)
