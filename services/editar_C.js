@@ -12,6 +12,7 @@ export async function cadastropt2(key, nome, cpf, estado, rua, cep, complemento,
 
     const keyParts = quebrarKey(key);
     const id = keyParts[0];
+    const email = keyParts[1];
     const senha = keyParts[2];
 
     const retorno = await temComplemento(conexao, nome, cpf, estado, rua, cep, complemento, dt_nascimento, id, email, senha);
