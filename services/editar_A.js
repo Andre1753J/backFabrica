@@ -7,6 +7,10 @@ async function executaQuery(conexao, query, params) {
 }
 
 export async function editar_A(key, nome, idade, sexo, disponivel, adotador, animalID) {
+    if (typeof disponivel != "boolean") {
+        throw new Error("Disponivel tem que ser um boolean");
+        
+    }
     const conexao = await pool.getConnection();
     const campos = {};
     if (nome !== undefined) campos.nome = nome;
@@ -15,9 +19,7 @@ export async function editar_A(key, nome, idade, sexo, disponivel, adotador, ani
     if (disponivel !== undefined) campos.disponivel = disponivel;
     if (adotador !== undefined) campos.adotador = adotador;
 
-    const keyParts = quebrarKey(key);
-    const id = keyParts[0];
-    const senha = keyParts[2];
+    const [id, , senha] = quebrarKey(key);
 
     const setClause = Object.keys(campos)
     .map((campo) => `${campo} = ?`)

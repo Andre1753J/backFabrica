@@ -8,12 +8,9 @@ async function executaQuery(conexao, query, params) {
 
 export async function cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento) {
     const conexao = await pool.getConnection();
-    console.log(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
 
     const keyParts = quebrarKey(key);
-    const id = keyParts[0];
-    const email = keyParts[1];
-    const senha = keyParts[2];
+    const [id, email, senha] = keyParts;
 
     const retorno = await temComplemento(conexao, nome, cpf, estado, rua, cep, complemento, dt_nascimento, id, email, senha);
 
@@ -36,7 +33,6 @@ async function temComplemento(conexao, nome, cpf, estado, rua, cep, complemento,
 
 export async function editar(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento) {
     const conexao = await pool.getConnection();
-    console.log(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
 
     const campos = {};
     if (nome !== undefined) campos.nome = nome;
@@ -47,17 +43,7 @@ export async function editar(key, nome, cpf, estado, rua, cep, complemento, dt_n
     if (complemento !== undefined) campos.complemento = complemento;
     if (dt_nascimento !== undefined) campos.dt_nascimento = dt_nascimento;
 
-    console.log(campos);
-
-    const [id, ...rest] = key.split("=-=");
-    const after = rest.join("=-=");
-    const [email, ...rest2] = after.split("=-=");
-    const senha = rest2.join('=-=');
-
-    // const keyParts = quebrarKey(key);
-    // const id = keyParts[0];
-    // const email = keyParts[1];
-    // const senha = keyParts[2];
+    const [id, email, senha] = quebrarKey(key);
 
     // Construir dinamicamente a cláusula SET
     const setClause = Object.keys(campos)
