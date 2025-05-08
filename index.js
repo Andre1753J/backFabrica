@@ -4,6 +4,8 @@ import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
+import path from 'path';
+import upload from "./services/moovi de tinguis/deTinguis.js";
 
 const app = express();
 
@@ -121,6 +123,10 @@ app.patch('/editar_a/:key', async (req, res) => {
         }
     }
 })
+
+
+app.use('/', upload);
+  
 
 app.listen(9000, () => {
     const data = new Date();
