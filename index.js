@@ -16,6 +16,8 @@ app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
     const retorno = await cadastrar(email, senha);
 
+    if (!validarEmail(email)) return res.status(400).json({ erro: 'E-mail inválido' });
+
     if (retorno.affectedRows > 0) {
         res.status(200).json({ response: "Afetou ai tlg" });
     } else {
