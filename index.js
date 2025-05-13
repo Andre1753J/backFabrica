@@ -4,8 +4,7 @@ import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
-import { validarCEP, validarCPF } from "./services/validacoes.js";
-import path from 'path';
+import { validarCEP, validarCPF, validarEmail, validarTelefone } from "./services/validacoes.js";
 import upload from "./services/moovi de tinguis/deTinguis.js";
 
 const app = express();
@@ -16,25 +15,32 @@ app.use(express.json());
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
 
-    if (!validarEmail(email)) return res.status(400).json({ erro: 'E-mail inválido' });
-
     try {
+        validarEmail(email); // Chamada direta, sem if
+
         const retorno = await cadastrar(email, senha);
 
-        if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Afetou ai tlg" });
+        if (retorno[0].affectedRows > 0) {
+            res.status(200).json({ response: retorno[1] });
         } else {
             res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
         }
+
     } catch (error) {
-        res.status(500).json({error:"Erro interno ao cadastrar"});
+        if (error.message === 'Email inválido') {
+            res.status(400).json({ erro: 'E-mail inválido' });
+        } else {
+            console.error(error);
+            res.status(500).json({ error: "Erro interno ao cadastrar" });
+        }
     }
-})
+});
+
 
 app.get('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
-        const retorno = await login(email, senha);
+        const retorno = await login(email, senha);  
         res.status(200).json({ response: retorno });
     } catch (error) {
         res.status(400).json({ response: error.message });
@@ -43,34 +49,36 @@ app.get('/login', async (req, res) => {
 
 app.patch('/cadastro_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento } = req.body;
-    if (nome == undefined || cpf == undefined || estado == undefined || rua == undefined || cep == undefined || dt_nascimento == undefined || telefone == undefined) {
-        res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
-    }
-    if (!validarCPF(cpf)) {
-        res.status(400).json({ response: "CPF inválido" });
-    }
-    const cepValido = await validarCEP(cep, estado, rua);
-    if (!cepValido) {
-        res.status(400).json({ response: "CEP, estado ou rua inválidos" });
+    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone } = req.body;
+
+    // Verificação de campos obrigatórios
+    if (!nome || !cpf || !estado || !rua || !cep || !dt_nascimento || !telefone) {
+        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
 
-    else {
-        try {
-            const retorno = await cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
+    try {
+        // Validações que podem lançar erro
+        validarCPF(cpf);
+        validarTelefone(telefone);
 
-            if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Afetou ai tlg" });
-            } else {
-                res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
-            }
+        const cepValido = await validarCEP(cep, estado, rua);
+        if (!cepValido) {
+            return res.status(400).json({ response: "CEP, estado ou rua inválidos" });
         }
-        catch (error) {
-            res.status(400).json({ response: error.message });
-        }
-    }
 
-})
+        // Atualização no banco
+        const retorno = await cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone);
+
+        if (retorno.affectedRows > 0) {
+            res.status(200).json({ response: "Afetou ai tlg" });
+        } else {
+            res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+        }
+
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
 
 app.patch('/editar/:key', async (req, res) => {
     const { key } = req.params;

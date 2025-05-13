@@ -13,7 +13,7 @@ export async function cadastrar(email, senha) {
 
     console.log(retorno);
     conexao.release();
-    return retorno;
+    return [retorno, `${retorno.insertId}=-=${email}=-=${senha}`];
 }
 
 export async function login(email, senha) {
