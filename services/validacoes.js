@@ -1,10 +1,23 @@
 import { cpf } from 'cpf-cnpj-validator';
 import emailValidator from 'email-validator';
 import cep from 'cep-promise';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 
 export async function validarCPF(numCPF) {
     if (!cpf.isValid(numCPF)) {
         throw new Error('CPF inválido');
+    }
+}
+
+// export function validarTelefone(numero, codigoPais = 'BR') {
+//   return isValidPhoneNumber(numero, codigoPais);
+// }
+
+// console.log(validarTelefone('+55 11 91234-5678')); // true
+
+export async function validarTelefone(telefone) {
+    if (!isValidPhoneNumber(telefone, 'BR')) {
+        throw new Error('Telefone inválido');
     }
 }
 

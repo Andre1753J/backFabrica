@@ -9,12 +9,6 @@ import { quebrarKey } from '../quebraKey.js';
 // imgType(1 pra gente, 2 pra bixo)_ID(O idê de quem postou, ou do animal)_subID(O idê no banco de dados)_(A extensão)
 
 
-
-//Trocar os .send pra .json fazendo o favor ai ; ;
-
-
-
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -85,7 +79,7 @@ router.post('/upload/:key/type/:imageType/animal/:idAnimal', async (req, res, ne
     console.log(imageType, idAnimal);
     //const { imageType, idAnimal } = jsonData;
     //const { imageType, idAnimal } = req.body;
-    if (!key || !imageType) return res.status(400).send('Parâmetro key e imageType são obrigatórios.');
+    if (!key || !imageType) return res.status(400).json('Parâmetro key e imageType são obrigatórios.');
 
     try {
         const conexao = await pool.getConnection();
@@ -98,11 +92,11 @@ router.post('/upload/:key/type/:imageType/animal/:idAnimal', async (req, res, ne
         }
         conexao.release();
     } catch (error) {
-        return res.status(500).send('Erro ao verificar a chave.' + error.message);
+        return res.status(500).json('Erro ao verificar a chave.' + error.message);
     }
 
     if (!podeSalvar) {
-        return res.status(403).send('Upload não permitido.');
+        return res.status(403).json('Upload não permitido.');
     }
 
     const resposta = await addInBank(imageType, id, idAnimal);
@@ -112,13 +106,13 @@ router.post('/upload/:key/type/:imageType/animal/:idAnimal', async (req, res, ne
         imageID = resposta.insertId;
 
     } else {
-        return res.status(500).send('Erro ao adicionar no banco de dados.');
+        return res.status(500).json('Erro ao adicionar no banco de dados.');
     }
 
     next();
 }, upload.single('imagem'), (req, res) => {
-    if (!req.file) { return res.status(400).send('Nenhum arquivo enviado.') } else { }
-    res.send(`Imagem salva como: ${req.file.filename}, com a chave: ${req.params.key}`);
+    if (!req.file) { return res.status(400).json('Nenhum arquivo enviado.') } else { }
+    res.json(`Imagem salva como: ${req.file.filename}, com a chave: ${req.params.key}`);
 });
 
 export default router;

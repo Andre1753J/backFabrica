@@ -4,6 +4,7 @@ import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
+import { validarCEP, validarCPF } from "./services/validacoes.js";
 import path from 'path';
 import upload from "./services/moovi de tinguis/deTinguis.js";
 
@@ -14,14 +15,19 @@ app.use(express.json());
 
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
-    const retorno = await cadastrar(email, senha);
 
     if (!validarEmail(email)) return res.status(400).json({ erro: 'E-mail inválido' });
 
-    if (retorno.affectedRows > 0) {
-        res.status(200).json({ response: "Afetou ai tlg" });
-    } else {
-        res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+    try {
+        const retorno = await cadastrar(email, senha);
+
+        if (retorno.affectedRows > 0) {
+            res.status(200).json({ response: "Afetou ai tlg" });
+        } else {
+            res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+        }
+    } catch (error) {
+        res.status(500).json({error:"Erro interno ao cadastrar"});
     }
 })
 
@@ -38,9 +44,18 @@ app.get('/login', async (req, res) => {
 app.patch('/cadastro_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
     const { nome, cpf, estado, rua, cep, complemento, dt_nascimento } = req.body;
-    if (nome == undefined || cpf == undefined || estado == undefined || rua == undefined || cep == undefined || dt_nascimento == undefined) {
+    if (nome == undefined || cpf == undefined || estado == undefined || rua == undefined || cep == undefined || dt_nascimento == undefined || telefone == undefined) {
         res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
-    } else {
+    }
+    if (!validarCPF(cpf)) {
+        res.status(400).json({ response: "CPF inválido" });
+    }
+    const cepValido = await validarCEP(cep, estado, rua);
+    if (!cepValido) {
+        res.status(400).json({ response: "CEP, estado ou rua inválidos" });
+    }
+
+    else {
         try {
             const retorno = await cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
 
@@ -128,7 +143,7 @@ app.patch('/editar_a/:key', async (req, res) => {
 
 
 app.use('/', upload);
-  
+
 
 app.listen(9000, () => {
     const data = new Date();
