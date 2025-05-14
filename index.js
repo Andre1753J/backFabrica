@@ -16,7 +16,7 @@ app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
 
     try {
-        validarEmail(email); // Chamada direta, sem if
+        validarEmail(email);
 
         const retorno = await cadastrar(email, senha);
 
@@ -36,7 +36,6 @@ app.post('/cadastrar_c', async (req, res) => {
     }
 });
 
-
 app.get('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
@@ -49,25 +48,22 @@ app.get('/login', async (req, res) => {
 
 app.patch('/cadastro_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone } = req.body;
+    const { nome, cpf, cep, complemento, dt_nascimento, telefone } = req.body;
 
-    // Verificação de campos obrigatórios
-    if (!nome || !cpf || !estado || !rua || !cep || !dt_nascimento || !telefone) {
+    if (!nome || !cpf || !cep || !dt_nascimento || !telefone) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
 
     try {
-        // Validações que podem lançar erro
         validarCPF(cpf);
         validarTelefone(telefone);
 
-        const cepValido = await validarCEP(cep, estado, rua);
+        const cepValido = await validarCEP(cep);
         if (!cepValido) {
-            return res.status(400).json({ response: "CEP, estado ou rua inválidos" });
+            return res.status(400).json({ response: "CEP inválido" });
         }
 
-        // Atualização no banco
-        const retorno = await cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone);
+        const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone);
 
         if (retorno.affectedRows > 0) {
             res.status(200).json({ response: "Afetou ai tlg" });
@@ -76,18 +72,19 @@ app.patch('/cadastro_c_pt2/:key', async (req, res) => {
         }
 
     } catch (error) {
+        console.log(key, nome, cpf, cep, complemento, dt_nascimento, telefone)
         res.status(400).json({ response: error.message });
     }
 });
 
 app.patch('/editar/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento } = req.body;
-    if (nome == undefined && cpf == undefined && estado == undefined && rua == undefined && cep == undefined && complemento == undefined && dt_nascimento == undefined) {
+    const { nome, cpf, cep, complemento, dt_nascimento } = req.body;
+    if (nome == undefined && cpf == undefined && cep == undefined && complemento == undefined && dt_nascimento == undefined) {
         res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
     } else {
         try {
-            const retorno = await editar(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
+            const retorno = await editar(key, nome, cpf, cep, complemento, dt_nascimento);
 
             if (retorno.affectedRows > 0) {
                 res.status(200).json({ response: "Afetou ai tlg" });
@@ -151,7 +148,6 @@ app.patch('/editar_a/:key', async (req, res) => {
 
 
 app.use('/', upload);
-
 
 app.listen(9000, () => {
     const data = new Date();

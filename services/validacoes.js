@@ -9,12 +9,6 @@ export function validarCPF(numCPF) {
     }
 }
 
-// export function validarTelefone(numero, codigoPais = 'BR') {
-//   return isValidPhoneNumber(numero, codigoPais);
-// }
-
-// console.log(validarTelefone('+55 11 91234-5678')); // true
-
 export function validarTelefone(telefone) {
     if (!isValidPhoneNumber(telefone, 'BR')) {
         throw new Error('Telefone inválido');
@@ -27,12 +21,10 @@ export function validarEmail(email) {
     }
 }
 
-export async function validarCEP(cepInput, estado, rua) {
+export async function validarCEP(cepInput) {
     try {
-        const resultado = await cep(cepInput);
-        const estadoValido = resultado.state.toLowerCase() === estadoEsperado.toLowerCase();
-        const ruaValida = resultado.street.toLowerCase().includes(ruaEsperada.toLowerCase());
-        return estadoValido && ruaValida;
+        await cep(cepInput);
+        return true;
     } catch (error) {
         return false;
     }
