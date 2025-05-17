@@ -1,5 +1,7 @@
 import express from "express";
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
@@ -39,7 +41,7 @@ app.post('/cadastrar_c', async (req, res) => {
 app.get('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
-        const retorno = await login(email, senha);  
+        const retorno = await login(email, senha);
         res.status(200).json({ response: retorno });
     } catch (error) {
         res.status(400).json({ response: error.message });
@@ -146,6 +148,30 @@ app.patch('/editar_a/:key', async (req, res) => {
     }
 })
 
+app.get('/imagem/:nome', (req, res) => {
+    try {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+
+        const nomeArquivo = req.params.nome;
+        if (!nomeArquivo) {
+            return res.status(400).json({ erro: "Nome do arquivo não fornecido" });
+        }
+
+        const caminho = path.join(__dirname, './as tinguis', nomeArquivo);
+
+        res.sendFile(caminho, (err) => {
+            if (err) {
+                console.error("Erro:", err.message);
+                res.status(404).json({ erro: "Imagem não encontrada" });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ erro: "Erro interno" });
+        console.log(error);
+    }
+
+});
 
 app.use('/', upload);
 
