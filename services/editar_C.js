@@ -31,7 +31,7 @@ async function temComplemento(conexao, nome, cpf, cep, complemento, dt_nasciment
     }
 }
 
-export async function editar(key, nome, cpf, cep, complemento, dt_nascimento, telefone) {
+export async function editar_c(key, nome, cpf, cep, complemento, dt_nascimento, telefone) {
     const conexao = await pool.getConnection();
 
     const campos = {};
