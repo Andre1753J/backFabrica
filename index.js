@@ -25,7 +25,7 @@ app.post('/cadastrar_c', async (req, res) => {
         if (retorno[0].affectedRows > 0) {
             res.status(200).json({ response: retorno[1] });
         } else {
-            res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+            res.status(400).json({ response: "Email não existente, favor colocar um valido" });
         }
 
     } catch (error) {
@@ -110,10 +110,10 @@ app.post('/cadastrar_a/:key', async (req, res) => {
         try {
             const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
             if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Afetou ai tlg" });
+                res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
             }
             else {
-                res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+                res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
             }
         }
         catch (error) {
@@ -135,10 +135,10 @@ app.patch('/editar_a/:key', async (req, res) => {
             try {
                 const retorno = await editar_A(key, nome, idade, sexo, disponivel, adotador, animalID);
                 if (retorno.affectedRows > 0) {
-                    res.status(200).json({ response: "Afetou ai tlg" });
+                    res.status(200).json({ response: "Informações alteradas com sucesso" });
                 }
                 else {
-                    res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+                    res.status(400).json({ response: "Campo inválido ou ID informado inválido" });
                 }
             }
             catch (error) {
