@@ -1,0 +1,30 @@
+Seguinte aqui eu vou colocar algumas coisas que eu acho importante colocar tanto no back quanto no front
+
+tem que simplificar as informações necessárias no cadastro há coisas descessarias
+a questão das vacinas de um animal como vamos trabalhar apenas com cães e gatos vamos padronizar eles da seguinte forma
+caso o user va cadastrar um gato na parte de vacinas vai aparecer as principais vacinas de gatos:
+Vacina antirrábica 
+Vacina polivalente (V3, V4) 
+Vacina contra leucemia felina (V5)
+e quando for um cachorro vai ser as seguintes:
+Vacina antirrábica
+Vacina polivalente (V8, V10, etc.)
+Vacina contra gripe canina
+Vacina contra Giárdia
+Vacina contra leishmaniose
+
+e quando aparecer essas opções vão ser da seguinte forma
+1° user escolhe qual animal
+2° vai aparecer uma serie de opções e pode ser escolhida mais de uma
+Ex: gato: vacinas: antirrábica e polivalente
+então ambas serão selecionadas pelo user, elas não podem se sobrescrever 
+
+a questão de adotar um animal será por uma rota
+a rota vai ser simples deve apenas tornar o animal que esta disponivel == true em disponivel == false
+deve salvar o user no animal como adotador e torna-lo indisponivel até que a adoção seja confirmada 
+caso não seja confirmado em um periodo de tempo o animal vai se tornar disponivel novamente
+
+no cadastro de cliente
+tem que colocar mais informações esta faltando coisas no cadastro (comparar com a pagina do front no desenvolvimento)
+quando pedir o cep faça com que ele preencha os outros campos automaticamente para evitar outras coisas e então facilitando para o user
+
