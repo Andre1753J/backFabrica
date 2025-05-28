@@ -1,7 +1,9 @@
 import express from "express";
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { cadastrar, login } from './services/cadastrar_C.js';
-import { cadastropt2, editar } from "./services/editar_C.js";
+import { cadastropt2, editar_c } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
 import { validarCEP, validarCPF, validarEmail, validarTelefone } from "./services/validacoes.js";
@@ -16,14 +18,14 @@ app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
 
     try {
-        validarEmail(email); // Chamada direta, sem if
+        validarEmail(email);
 
         const retorno = await cadastrar(email, senha);
 
         if (retorno[0].affectedRows > 0) {
             res.status(200).json({ response: retorno[1] });
         } else {
-            res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+            res.status(400).json({ response: "Email não existente, favor colocar um valido" });
         }
 
     } catch (error) {
@@ -36,63 +38,60 @@ app.post('/cadastrar_c', async (req, res) => {
     }
 });
 
-
 app.get('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
-        const retorno = await login(email, senha);  
+        const retorno = await login(email, senha);
         res.status(200).json({ response: retorno });
     } catch (error) {
         res.status(400).json({ response: error.message });
     }
 })
 
-app.patch('/cadastro_c_pt2/:key', async (req, res) => {
+app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone } = req.body;
+    const { nome, cpf, cep, complemento, dt_nascimento, telefone } = req.body;
 
-    // Verificação de campos obrigatórios
-    if (!nome || !cpf || !estado || !rua || !cep || !dt_nascimento || !telefone) {
+    if (!nome || !cpf || !cep || !dt_nascimento || !telefone) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
 
     try {
-        // Validações que podem lançar erro
         validarCPF(cpf);
         validarTelefone(telefone);
 
-        const cepValido = await validarCEP(cep, estado, rua);
+        const cepValido = await validarCEP(cep);
         if (!cepValido) {
-            return res.status(400).json({ response: "CEP, estado ou rua inválidos" });
+            return res.status(400).json({ response: "CEP inválido" });
         }
 
-        // Atualização no banco
-        const retorno = await cadastropt2(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento, telefone);
+        const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone);
 
         if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Afetou ai tlg" });
+            res.status(200).json({ response: "Cadastro Finalizado com sucesso" });
         } else {
-            res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+            res.status(400).json({ response: "O cadastro que deseja realizar já é existente" });
         }
 
     } catch (error) {
+        console.log(key, nome, cpf, cep, complemento, dt_nascimento, telefone)
         res.status(400).json({ response: error.message });
     }
 });
 
-app.patch('/editar/:key', async (req, res) => {
+app.patch('/editar_c/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, estado, rua, cep, complemento, dt_nascimento } = req.body;
-    if (nome == undefined && cpf == undefined && estado == undefined && rua == undefined && cep == undefined && complemento == undefined && dt_nascimento == undefined) {
+    const { nome, cpf, cep, complemento, dt_nascimento } = req.body || {};
+    if (nome == undefined && cpf == undefined && cep == undefined && complemento == undefined && dt_nascimento == undefined) {
         res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
     } else {
         try {
-            const retorno = await editar(key, nome, cpf, estado, rua, cep, complemento, dt_nascimento);
+            const retorno = await editar_c(key, nome, cpf, cep, complemento, dt_nascimento);
 
             if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Afetou ai tlg" });
+                res.status(200).json({ response: "Alterações nas informações feitas com sucesso" });
             } else {
-                res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+                res.status(400).json({ response: "alguma informação esta invalida" });
             }
         }
         catch (error) {
@@ -111,10 +110,10 @@ app.post('/cadastrar_a/:key', async (req, res) => {
         try {
             const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
             if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Afetou ai tlg" });
+                res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
             }
             else {
-                res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+                res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
             }
         }
         catch (error) {
@@ -136,10 +135,10 @@ app.patch('/editar_a/:key', async (req, res) => {
             try {
                 const retorno = await editar_A(key, nome, idade, sexo, disponivel, adotador, animalID);
                 if (retorno.affectedRows > 0) {
-                    res.status(200).json({ response: "Afetou ai tlg" });
+                    res.status(200).json({ response: "Informações alteradas com sucesso" });
                 }
                 else {
-                    res.status(400).json({ response: "Isso ai já existe, ou tá errado" });
+                    res.status(400).json({ response: "Campo inválido ou ID informado inválido" });
                 }
             }
             catch (error) {
@@ -149,9 +148,32 @@ app.patch('/editar_a/:key', async (req, res) => {
     }
 })
 
+app.get('/imagem/:nome', (req, res) => {
+    try {
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+
+        const nomeArquivo = req.params.nome;
+        if (!nomeArquivo) {
+            return res.status(400).json({ erro: "Nome do arquivo não fornecido" });
+        }
+
+        const caminho = path.join(__dirname, './as tinguis', nomeArquivo);
+
+        res.sendFile(caminho, (err) => {
+            if (err) {
+                console.error("Erro:", err.message);
+                res.status(404).json({ erro: "Imagem não encontrada" });
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ erro: "Erro interno" });
+        console.log(error);
+    }
+
+});
 
 app.use('/', upload);
-
 
 app.listen(9000, () => {
     const data = new Date();
