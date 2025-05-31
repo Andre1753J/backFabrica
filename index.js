@@ -1,6 +1,5 @@
 import express from "express";
 import cors from 'cors';
-import path from 'path';
 import { fileURLToPath } from 'url';
 import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar_c } from "./services/editar_C.js";
@@ -8,6 +7,15 @@ import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
 import { validarCEP, validarCPF, validarEmail, validarTelefone } from "./services/validacoes.js";
 import upload from "./services/moovi de tinguis/deTinguis.js";
+import { listarAnimaisDiponiveis } from "./services/listar_A.js";
+import { solicitarAdocao } from "./services/solicitar_adocao.js";
+import { resolverAdocao } from "./services/resolver_adocao.js";
+import { deletarCliente } from "./services/deletar_C.js";
+import { meusAnimais } from "./services/animais_do_C.js";
+import { removerAnimal } from "./services/remover_A.js";
+import { minhasAdocoes } from "./services/adocoes_C.js";
+import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
+import { cancelarAdocao } from "./services/cancelar_adocao.js";
 
 const app = express();
 
@@ -45,6 +53,15 @@ app.get('/login', async (req, res) => {
         res.status(200).json({ response: retorno });
     } catch (error) {
         res.status(400).json({ response: error.message });
+    }
+})
+
+app.get('/info_c/:key', async (req, res) => {
+    try {
+        const cliente = await buscarCliente(req.params.key);
+        res.status(200).json({ cliente });
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
     }
 })
 
@@ -101,6 +118,15 @@ app.patch('/editar_c/:key', async (req, res) => {
 
 })
 
+app.delete('/deletar_c/:key', async (req, res) => {
+    try {
+        await deletarCliente(req.params.key);
+        res.status(200).json({ mensagem: "Cliente deletado com sucesso" });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+})
+
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
     const { nome, idade, sexo, disponivel } = req.body;
@@ -120,6 +146,58 @@ app.post('/cadastrar_a/:key', async (req, res) => {
             res.status(400).json({ response: error.message });
         }
 
+    }
+})
+
+app.get('/meus_animais/:key', async (req, res) => {
+    try {
+        const animais = await meusAnimais(req.params.key);
+        res.status(200).json({ animais });
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
+    }
+})
+
+app.get('/minhas_adocoes/:key', async (req, res) => {
+    const { key } = req.params;
+    try {
+        const adotados = await minhasAdocoes(key);
+        res.status(200).json({ response: adotados });
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
+
+app.get('/solicitacoes_recebidas/:key', async (req, res) => {
+    const { key } = req.params;
+    try {
+        const solicitacoes = await solicitacoesRecebidas(key);
+        res.status(200).json({ response: solicitacoes });
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
+
+app.delete('/cancelar_adocao/:key/:animalID', async (req, res) => {
+    const { key, animalID } = req.params;
+    try {
+        const retorno = await cancelarAdocao(key, animalID);
+        if (retorno.affectedRows > 0) {
+            res.status(200).json({ response: "Adoção cancelada com sucesso" });
+        } else {
+            res.status(400).json({ response: "Não foi possível cancelar a adoção (verifique a chave e o ID do animal)" });
+        }
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
+
+app.delete('/remover_a/:key/:animalID', async (req, res) => {
+    try {
+        await removerAnimal(req.params.key, req.params.animalID);
+        res.status(200).json({ mensagem: "Animal removido com sucesso." });
+    } catch (error) {
+        res.status(400).json({ erro: error.message });
     }
 })
 
@@ -148,6 +226,20 @@ app.patch('/editar_a/:key', async (req, res) => {
     }
 })
 
+app.get('/listar_animais', async (req, res) => {
+    try {
+        const animais = await listarAnimaisDiponiveis();
+        if (animais.length > 0) {
+            res.status(200).json({ response: animais });
+        } else {
+            res.status(404).json({response: "Nenhum animal disponível para adoção no momento."})
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ response: "Erro interno ao listar animais" });
+    }
+})
+
 app.get('/imagem/:nome', (req, res) => {
     try {
         const __filename = fileURLToPath(import.meta.url);
@@ -172,6 +264,37 @@ app.get('/imagem/:nome', (req, res) => {
     }
 
 });
+
+app.post('/solicitar_adocao/:key', async (req, res) => {
+    const { key } = req.params;
+    const { id_animal } = req.body;
+
+    if (!id_animal) {
+        return res.status(400).json({ response: "ID do animal é obrigatório" });
+    }
+    try {
+        const resultado = await solicitarAdocao(key, id_animal);
+        res.status(200).json({ response: "Adoção solicitada com sucesso"});
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
+
+app.patch('/resolver_adocao/:key', async (req, res) => {
+    const {key} = req.params;
+    const { id_adocao, status } = req.body;
+
+    if (!id_adocao || !["aprovado", "recusado"].includes(status)) {
+        return res.status(400).json({ response: "Dados invalidos" });
+    }
+
+    try {
+        await resolverAdocao(key, id_adocao, status);
+        res.status(200).json({ response: `Solicitação ${status} com sucesso.` });
+    }catch (error) {
+        res.status(403).json({ response: error.message });
+    }
+})
 
 app.use('/', upload);
 
