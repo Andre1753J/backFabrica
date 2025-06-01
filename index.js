@@ -69,13 +69,10 @@ app.get('/info_c/:key', async (req, res) => {
 
 app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro } = req.body;
+    const { nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2 } = req.body;
 
-    console.log(key, nome, cpf, cep, complemento, dt_nascimento, rg, sexo, bairro);
-
-
-    if (!nome || !cpf || !cep || !dt_nascimento || !telefone) {
-        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
+    if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !rg || !sexo || !bairro || !estado || !rua) {
+       return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
 
     try {
@@ -84,10 +81,10 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
 
         const cepValido = await validarCEP(cep);
         if (!cepValido) {
-            return res.status(400).json({ response: "CEP inválido" });
+          return res.status(400).json({ response: "CEP inválido" });
         }
 
-        const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone);
+        const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2);
 
         if (retorno.affectedRows > 0) {
             res.status(200).json({ response: "Cadastro Finalizado com sucesso" });

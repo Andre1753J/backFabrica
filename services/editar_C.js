@@ -8,16 +8,18 @@ async function executaQuery(conexao, query, params) {
 
 export async function cadastropt2(
     key, nome, cpf, cep, complemento,
-    dt_nascimento, telefone1, rg,
-    sexo, bairro
+    dt_nascimento, telefone, rg,
+    sexo, bairro, estado, rua, telefone2
 ) {
+
+    console.log(key, nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2);
     const conexao = await pool.getConnection();
     const [id, email, senha] = key.split("=-=");
 
     const retorno = await atualizarCliente(
         conexao, nome, cpf, cep, complemento,
-        dt_nascimento, telefone1, rg,
-        sexo, bairro,
+        dt_nascimento, telefone, rg,
+        sexo, bairro, estado, rua, telefone2,
         id, email, senha
     );
 
@@ -31,18 +33,23 @@ export async function cadastropt2(
 
 async function atualizarCliente(
     conexao, nome, cpf, cep, complemento,
-    dt_nascimento, telefone1, rg,
-    sexo, bairro,
+    dt_nascimento, telefone, rg,
+    sexo, bairro, estado, rua, telefone2,
     id, email, senha
 ) {
     const campos = {
-        nome, cpf, cep, dt_nascimento, telefone1,
-        rg, sexo, bairro
+        nome, cpf, cep, complemento, dt_nascimento, telefone,
+        rg, sexo, bairro, estado, rua, telefone2
     };
+    campos.complemento += ``;
+    campos.telefone2 += ``;
 
     // Adiciona "complemento" se ele for definido
     if (complemento !== undefined) {
         campos.complemento = complemento;
+    }
+    if (telefone2 !== undefined) {
+        campos.telefone2 = telefone2;
     }
 
     const setClause = Object.keys(campos)
@@ -66,6 +73,12 @@ export async function editar_c(key, nome, cpf, cep, complemento, dt_nascimento, 
     if (complemento !== undefined) campos.complemento = complemento;
     if (dt_nascimento !== undefined) campos.dt_nascimento = dt_nascimento;
     if (telefone !== undefined) campos.telefone = telefone;
+    if (telefone2 !== undefined) campos.telefone2 = telefone2;
+    if (rua !== undefined) campos.rua = rua;
+    if (bairro !== undefined) campos.bairro = bairro;
+    if (estado !== undefined) campos.estado = estado;
+    if (rg !== undefined) campos.rg = rg;
+    if (sexo !== undefined) campos.sexo = sexo;
 
     const [id, email, senha] = quebrarKey(key);
 
