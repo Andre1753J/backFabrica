@@ -16,6 +16,8 @@ import { removerAnimal } from "./services/remover_A.js";
 import { minhasAdocoes } from "./services/adocoes_C.js";
 import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
+import { buscarCliente } from './services/info_C.js';
+
 
 const app = express();
 
@@ -67,7 +69,10 @@ app.get('/info_c/:key', async (req, res) => {
 
 app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, cep, complemento, dt_nascimento, telefone } = req.body;
+    const { nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro } = req.body;
+
+    console.log(key, nome, cpf, cep, complemento, dt_nascimento, rg, sexo, bairro);
+
 
     if (!nome || !cpf || !cep || !dt_nascimento || !telefone) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
@@ -91,7 +96,7 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
         }
 
     } catch (error) {
-        console.log(key, nome, cpf, cep, complemento, dt_nascimento, telefone)
+
         res.status(400).json({ response: error.message });
     }
 });

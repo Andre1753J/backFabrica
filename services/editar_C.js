@@ -6,28 +6,54 @@ async function executaQuery(conexao, query, params) {
     return resposta_query[0];
 }
 
-export async function cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone) {
+export async function cadastropt2(
+    key, nome, cpf, cep, complemento,
+    dt_nascimento, telefone1, rg,
+    sexo, bairro
+) {
     const conexao = await pool.getConnection();
+    const [id, email, senha] = key.split("=-=");
 
-    const keyParts = quebrarKey(key);
-    const [id, email, senha] = keyParts;
-    const retorno = await temComplemento(conexao, nome, cpf, cep, complemento, dt_nascimento, telefone, id, email, senha);
+    const retorno = await atualizarCliente(
+        conexao, nome, cpf, cep, complemento,
+        dt_nascimento, telefone1, rg,
+        sexo, bairro,
+        id, email, senha
+    );
 
-    if (retorno.affectedRows == 0) {
+    if (retorno.affectedRows === 0) {
         throw new Error("Erro ao editar o cliente, verifique os dados e tente novamente.");
     }
+
     conexao.release();
     return retorno;
 }
 
-async function temComplemento(conexao, nome, cpf, cep, complemento, dt_nascimento, telefone, id, email, senha) {
-    if (typeof complemento == "undefined") {
-        const query = 'UPDATE cliente SET nome = ?, cpf = ?, cep = ?, dt_nascimento = ?, telefone = ? WHERE (id, email, senha) = (?, ?, ?)';
-        return await executaQuery(conexao, query, [nome, cpf, cep, dt_nascimento, telefone, id, email, senha]);
-    } else {
-        const query = 'UPDATE cliente SET nome = ?, cpf = ?, cep = ?, complemento = ?, dt_nascimento = ?, telefone = ? WHERE (id, email, senha) = (?, ?, ?)';
-        return await executaQuery(conexao, query, [nome, cpf, cep, complemento, dt_nascimento, telefone, id, email, senha]);
+async function atualizarCliente(
+    conexao, nome, cpf, cep, complemento,
+    dt_nascimento, telefone1, rg,
+    sexo, bairro,
+    id, email, senha
+) {
+    const campos = {
+        nome, cpf, cep, dt_nascimento, telefone1,
+        rg, sexo, bairro
+    };
+
+    // Adiciona "complemento" se ele for definido
+    if (complemento !== undefined) {
+        campos.complemento = complemento;
     }
+
+    const setClause = Object.keys(campos)
+        .map(campo => `${campo} = ?`)
+        .join(', ');
+
+    const valores = [...Object.values(campos), id, email, senha];
+
+    const query = `UPDATE cliente SET ${setClause} WHERE (id, email, senha) = (?, ?, ?)`;
+
+    return await executaQuery(conexao, query, valores);
 }
 
 export async function editar_c(key, nome, cpf, cep, complemento, dt_nascimento, telefone) {

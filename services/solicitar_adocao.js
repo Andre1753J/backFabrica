@@ -1,5 +1,5 @@
 import pool from './connection.js';
-import { quebrarKey } from './quebrar_key.js';
+import { quebrarKey } from './quebraKey.js';
 
 async function executaQuery(conexao, query, params) {
     const resposta_query = await conexao.execute(query, params);

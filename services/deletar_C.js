@@ -1,23 +1,19 @@
-import pool from "./connection.js";
-import { quebrarKey } from "./quebraKey.js";
-
-async function executaQuery(conexao, query, params) {
-    const resposta_query = await conexao.execute(query, params);
-    return resposta_query[0];
-}
+import conexao from './connection.js';
+import { quebrarKey } from './quebraKey.js';
 
 export async function deletarCliente(key) {
-    const conexao = await pool.getConnection();
-    const [id, email, senha] = quebrarKey(key);
+    const [id] = quebrarKey(key); // extrai o ID a partir da chave
 
-    const query = `DELETE FROM cliente WHERE id = ? AND email = ? AND senha = ?`;
-    const retorno = await executaQuery(conexao, query, [id, email, senha]);
+    const conn = await conexao.getConnection();
+    try {
+        // Exclui primeiro os animais associados
+        await conn.query('DELETE FROM animal WHERE doador = ?', [id]);
 
-    conexao.realease();
+        // Depois exclui o cliente
+        const [resultado] = await conn.query('DELETE FROM cliente WHERE id = ?', [id]);
 
-    if (retorno.affectedRows === 0) {
-        throw new Error("Não foi possível deletar o cliente, Verifique os dados.");
+        return resultado;
+    } finally {
+        conn.release();
     }
-
-    return true;
 }
