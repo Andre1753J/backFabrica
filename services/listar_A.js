@@ -5,7 +5,7 @@ async function executaQuery(conexao, query, params) {
     return resposta_query[0];
 }
 
-export async function listarAnimaisDiponiveis() {
+export async function listarAnimaisDisponiveis() {
     const conexao = await pool.getConnection();
 
     const query = 'SELECT id, nome, idade, sexo, doador FROM animal WHERE disponivel = 1';

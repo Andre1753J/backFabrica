@@ -9,14 +9,23 @@ async function executaQuery(conexao, query, params) {
 export async function solicitacoesRecebidas(key) {
     const [id, , senha] = quebrarKey(key);
     const conexao = await pool.getConnection();
+
     const query = `
-        SELECT animal.id, animal.nome, cliente.email as solicitante_email
-        FROM animal
-        JOIN cliente ON cliente.id = animal.adotador
-        WHERE animal.doador = ? AND animal.adotador IS NOT NULL
+        SELECT 
+            adocao.id AS id_adocao,
+            adocao.status,
+            animal.id AS id_animal,
+            animal.nome AS nome_animal,
+            cliente.id AS id_cliente,
+            cliente.nome AS nome_solicitante,
+            cliente.email AS email_solicitante
+        FROM adocao
+        JOIN animal ON adocao.id_animal = animal.id
+        JOIN cliente ON adocao.id_cliente = cliente.id
+        WHERE animal.doador = ?
     `;
+
     const resultado = await executaQuery(conexao, query, [id]);
     conexao.release();
     return resultado;
 }
-

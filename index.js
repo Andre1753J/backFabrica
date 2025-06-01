@@ -7,7 +7,7 @@ import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
 import { validarCEP, validarCPF, validarEmail, validarTelefone } from "./services/validacoes.js";
 import upload from "./services/moovi de tinguis/deTinguis.js";
-import { listarAnimaisDiponiveis } from "./services/listar_A.js";
+import { listarAnimaisDisponiveis } from "./services/listar_A.js";
 import { solicitarAdocao } from "./services/solicitar_adocao.js";
 import { resolverAdocao } from "./services/resolver_adocao.js";
 import { deletarCliente } from "./services/deletar_C.js";
@@ -233,7 +233,7 @@ app.patch('/editar_a/:key', async (req, res) => {
 
 app.get('/listar_animais', async (req, res) => {
     try {
-        const animais = await listarAnimaisDiponiveis();
+        const animais = await listarAnimaisDisponiveis();
         if (animais.length > 0) {
             res.status(200).json({ response: animais });
         } else {

@@ -9,17 +9,32 @@ async function executaQuery(conexao, query, params) {
 export async function cancelarAdocao(key, animalID) {
     const [id, , senha] = quebrarKey(key);
     const conexao = await pool.getConnection();
-    const query = `
-        UPDATE animal
-        SET adotador = NULL
-        WHERE id = ? AND adotador = ?
-    `;
-    const retorno = await executaQuery(conexao, query, [animalID, id]);
-    conexao.release();
 
-    if (retorno.affectedRows === 0) {
-        throw new Error("Adoção não encontrada ou você não é o adotador.");
+    try {
+        // Verifica se existe a solicitação de adoção
+        const adocao = await executaQuery(conexao,
+            `SELECT * FROM adocao WHERE id_animal = ? AND id_cliente = ?`,
+            [animalID, id]
+        );
+
+        if (adocao.length === 0) {
+            throw new Error("Adoção não encontrada ou você não é o adotador.");
+        }
+
+        // Remove a solicitação da tabela adocao
+        await executaQuery(conexao,
+            `DELETE FROM adocao WHERE id_animal = ? AND id_cliente = ?`,
+            [animalID, id]
+        );
+
+        // Opcional: limpa o campo adotador do animal, se essa adoção era a aprovada
+        await executaQuery(conexao,
+            `UPDATE animal SET adotador = NULL, disponivel = 1 WHERE id = ? AND adotador = ?`,
+            [animalID, id]
+        );
+
+        return true;
+    } finally {
+        conexao.release();
     }
-
-    return true;
 }

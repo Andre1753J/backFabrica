@@ -13,11 +13,11 @@ export async function solicitarAdocao(key, id_animal) {
     const [id_cliente, email, senha] = keyParts;
 
     try {
-        const verificador = await executaQuery(conexao, 'SELECT diponivel FROM animal WHERE id = ?', [id_animal]);
+        const verificador = await executaQuery(conexao, 'SELECT disponivel FROM animal WHERE id = ?', [id_animal]);
 
         if (verificador.length === 0){
             throw new Error("Animal não encontrado");
-        } if (verificador[0].diponivel === 0) {
+        } if (verificador[0].disponivel === 0) {
             throw new Error("Animal não disponível para adoção");
         }
 
