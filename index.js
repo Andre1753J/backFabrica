@@ -122,12 +122,17 @@ app.patch('/editar_c/:key', async (req, res) => {
 
 app.delete('/deletar_c/:key', async (req, res) => {
     try {
-        await deletarCliente(req.params.key);
+        const resultado = await deletarCliente(req.params.key);
+
+        if (resultado.affectedRows === 0) {
+            return res.status(404).json({ error: "Cliente não encontrado ou já deletado." });
+        }
+
         res.status(200).json({ mensagem: "Cliente deletado com sucesso" });
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
-})
+});
 
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
