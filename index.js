@@ -187,12 +187,19 @@ app.get('/solicitacoes_recebidas/:key', async (req, res) => {
 
 app.delete('/cancelar_adocao/:key/:animalID', async (req, res) => {
     const { key, animalID } = req.params;
+
     try {
-        const retorno = await cancelarAdocao(key, animalID);
-        if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Adoção cancelada com sucesso" });
+        const resultado = await cancelarAdocao(key, animalID);
+
+        if (resultado.cancelado) {
+            res.status(200).json({
+                response: "Adoção cancelada com sucesso",
+                animalAtualizado: resultado.atualizouAnimal
+            });
         } else {
-            res.status(400).json({ response: "Não foi possível cancelar a adoção (verifique a chave e o ID do animal)" });
+            res.status(404).json({
+                response: resultado.motivo || "Não foi possível cancelar a adoção"
+            });
         }
     } catch (error) {
         res.status(400).json({ response: error.message });

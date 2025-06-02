@@ -7,7 +7,7 @@ async function executaQuery(conexao, query, params) {
 }
 
 export async function cancelarAdocao(key, animalID) {
-    const [id, , senha] = quebrarKey(key);
+    const [id] = quebrarKey(key);
     const conexao = await pool.getConnection();
 
     try {
@@ -18,22 +18,25 @@ export async function cancelarAdocao(key, animalID) {
         );
 
         if (adocao.length === 0) {
-            throw new Error("Adoção não encontrada ou você não é o adotador.");
+            return { cancelado: false, motivo: "Adoção não encontrada ou você não é o adotador." };
         }
 
         // Remove a solicitação da tabela adocao
-        await executaQuery(conexao,
+        const [deleteResult] = await conexao.execute(
             `DELETE FROM adocao WHERE id_animal = ? AND id_cliente = ?`,
             [animalID, id]
         );
 
-        // Opcional: limpa o campo adotador do animal, se essa adoção era a aprovada
-        await executaQuery(conexao,
+        // Limpa o campo adotador do animal, se essa adoção era a aprovada
+        const [updateResult] = await conexao.execute(
             `UPDATE animal SET adotador = NULL, disponivel = 1 WHERE id = ? AND adotador = ?`,
             [animalID, id]
         );
 
-        return true;
+        return {
+            cancelado: deleteResult.affectedRows > 0,
+            atualizouAnimal: updateResult.affectedRows > 0
+        };
     } finally {
         conexao.release();
     }
