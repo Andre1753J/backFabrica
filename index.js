@@ -18,11 +18,22 @@ import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
 import { buscarCliente } from './services/info_C.js';
 
+import { databankCheck } from './DataBankCheck.js';
+
+const check = databankCheck('./DataBank.ISO');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Middleware para bloquear se o banco estiver indisponível
+app.use((req, res, next) => {
+  if (!check()) {
+    return res.status(503).send('Serviço temporariamente indisponível');
+  }
+  next();
+});
 
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
