@@ -24,7 +24,8 @@ const check = databankCheck('./DataBank.ISO');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:3000',}));
 app.use(express.json());
 
 
@@ -34,12 +35,13 @@ function checkAvailability(req, res, next){
     }
     next();
   }
+app.use(checkAvailability);
 
 app.get('/api/status', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: true });
   });
 
-app.use(checkAvailability);
+
 
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
@@ -331,5 +333,5 @@ app.use('/', upload);
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor inciado ass ' + data + "EM localhost:3000");
+    console.log('Servidor inciado ass ' + data + "EM localhost:9000");
 })
