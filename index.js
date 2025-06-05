@@ -27,12 +27,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use((req, res, next) => {
-  if (!check()) {
-    return res.status(503).send('Serviço temporariamente indisponível');
+
+function checkAvailability(req, res, next){
+    if (!check()) {
+      return res.status(503).send('Serviço temporariamente indisponível');
+    }
+    next();
   }
-  next();
-});
+
+app.get('/api/status', (req, res) => {
+    res.json({ status: 'ok' });
+  });
+
+app.use(checkAvailability);
 
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
@@ -324,5 +331,5 @@ app.use('/', upload);
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor inciado ass ' + data);
+    console.log('Servidor inciado ass ' + data + "EM localhost:3000");
 })
