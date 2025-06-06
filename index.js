@@ -25,7 +25,7 @@ const check = databankCheck('./DataBank.ISO');
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:3000',}));
+    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br"],}));
 app.use(express.json());
 
 
