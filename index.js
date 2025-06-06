@@ -28,6 +28,9 @@ app.use(cors({
     origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br", "*"],}));
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.send('API funcionando');
+});
 
 function checkAvailability(req, res, next){
     if (!check()) {
