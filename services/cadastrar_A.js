@@ -17,3 +17,5 @@ export async function cadastrar_A(key, nome, idade, sexo, disponivel) {
     conexao.release();
     return retorno;
 };
+
+//falta informações do animal, como raça, espécie, etc.

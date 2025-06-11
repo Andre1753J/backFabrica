@@ -24,15 +24,27 @@ const check = databankCheck('./DataBank.ISO');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br", "*"],}));
 app.use(express.json());
 
-app.use((req, res, next) => {
-  if (!check()) {
-    return res.status(503).send('Serviço temporariamente indisponível');
-  }
-  next();
+app.get('/', (req, res) => {
+    res.send('API funcionando');
 });
+
+function checkAvailability(req, res, next){
+    if (!check()) {
+      return res.status(503).send('Serviço temporariamente indisponível');
+    }
+    next();
+  }
+app.use(checkAvailability);
+
+app.get('/api/status', (req, res) => {
+    res.json({ status: true });
+  });
+
+
 
 app.post('/cadastrar_c', async (req, res) => {
     const { email, senha } = req.body;
@@ -324,5 +336,5 @@ app.use('/', upload);
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor inciado ass ' + data);
+    console.log('Servidor inciado ass ' + data + "EM localhost:9000");
 })
