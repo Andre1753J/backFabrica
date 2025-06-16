@@ -70,7 +70,7 @@ app.post('/cadastrar_c', async (req, res) => {
     }
 });
 
-app.get('/login', async (req, res) => {
+app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
         const retorno = await login(email, senha);
