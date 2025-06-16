@@ -165,7 +165,7 @@ app.post('/cadastrar_a/:key', async (req, res) => {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
     try {
-        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
+        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel, imagem || null);
         if (retorno.affectedRows > 0) {
             res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
         } else {
