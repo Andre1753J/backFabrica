@@ -25,24 +25,25 @@ const check = databankCheck('./DataBank.ISO');
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br", "*"],}));
+    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br", "*"],
+}));
 app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send('API funcionando');
 });
 
-function checkAvailability(req, res, next){
+function checkAvailability(req, res, next) {
     if (!check()) {
-      return res.status(503).send('Serviço temporariamente indisponível');
+        return res.status(503).send('Serviço temporariamente indisponível');
     }
     next();
-  }
+}
 app.use(checkAvailability);
 
 app.get('/api/status', (req, res) => {
     res.json({ status: true });
-  });
+});
 
 
 
@@ -94,7 +95,7 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2 } = req.body;
 
     if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !rg || !sexo || !bairro || !estado || !rua) {
-       return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
+        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
 
     try {
@@ -103,7 +104,7 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
 
         const cepValido = await validarCEP(cep);
         if (!cepValido) {
-          return res.status(400).json({ response: "CEP inválido" });
+            return res.status(400).json({ response: "CEP inválido" });
         }
 
         const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2);
@@ -168,7 +169,11 @@ app.post('/cadastrar_a/:key', async (req, res) => {
         // Remova o null/imagem do final!
         const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
         if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
+            // Pegue o id inserido
+            res.status(200).json({
+                response: "Cadastro do animal realizado com sucesso",
+                id: retorno.insertId // <-- importante!
+            });
         } else {
             res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
         }
@@ -267,7 +272,7 @@ app.get('/listar_animais', async (req, res) => {
         if (animais.length > 0) {
             res.status(200).json({ response: animais });
         } else {
-            res.status(404).json({response: "Nenhum animal disponível para adoção no momento."})
+            res.status(404).json({ response: "Nenhum animal disponível para adoção no momento." })
         }
     } catch (error) {
         console.error(error);
@@ -309,14 +314,14 @@ app.post('/solicitar_adocao/:key', async (req, res) => {
     }
     try {
         const resultado = await solicitarAdocao(key, id_animal);
-        res.status(200).json({ response: "Adoção solicitada com sucesso"});
+        res.status(200).json({ response: "Adoção solicitada com sucesso" });
     } catch (error) {
         res.status(400).json({ response: error.message });
     }
 });
 
 app.patch('/resolver_adocao/:key', async (req, res) => {
-    const {key} = req.params;
+    const { key } = req.params;
     const { id_adocao, status } = req.body;
 
     if (!id_adocao || !["aprovado", "recusado"].includes(status)) {
@@ -326,7 +331,7 @@ app.patch('/resolver_adocao/:key', async (req, res) => {
     try {
         await resolverAdocao(key, id_adocao, status);
         res.status(200).json({ response: `Solicitação ${status} com sucesso.` });
-    }catch (error) {
+    } catch (error) {
         res.status(403).json({ response: error.message });
     }
 })
