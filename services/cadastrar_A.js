@@ -13,13 +13,13 @@ export async function cadastrar_A(key, nome, idade, sexo, disponivel, imagem) {
 
     // Adapte o nome da tabela e campos conforme seu banco!
     const query = `
-        INSERT INTO animal (nome, idade, sexo, disponivel, doador, adotador, imagem)
-        SELECT ?, ?, ?, ?, ?, null, ?
-        FROM cliente
-        WHERE id = ? AND senha = ?
-    `;
-    // Ordem dos parâmetros: nome, idade, sexo, disponivel, doador, imagem, id, senha
-    const params = [nome, idade, sexo, disponivel, id, imagem, id, senha];
+    INSERT INTO animal (nome, idade, sexo, disponivel, doador, adotador)
+    SELECT ?, ?, ?, ?, ?, null
+    FROM cliente
+    WHERE id = ? AND senha = ?
+`;
+    // Ordem dos parâmetros: nome, idade, sexo, disponivel, doador, id, senha
+    const params = [nome, idade, sexo, disponivel, id, id, senha];
 
     const retorno = await executaQuery(conexao, query, params);
     conexao.release();

@@ -159,13 +159,14 @@ app.delete('/deletar_c/:key', async (req, res) => {
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
     const { nome, idade, sexo } = req.body;
-    const disponivel = true; // Sempre disponível ao cadastrar
+    const disponivel = true;
 
     if (!nome || !idade || !sexo) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
     try {
-        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel, null); // imagem sempre null no cadastro inicial
+        // Remova o null/imagem do final!
+        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
         if (retorno.affectedRows > 0) {
             res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
         } else {
