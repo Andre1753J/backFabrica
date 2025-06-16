@@ -158,25 +158,23 @@ app.delete('/deletar_c/:key', async (req, res) => {
 
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, idade, sexo, disponivel } = req.body;
-    if (nome == undefined || idade == undefined || sexo == undefined || disponivel == undefined) {
-        res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
-    } else {
-        try {
-            const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
-            if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
-            }
-            else {
-                res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
-            }
-        }
-        catch (error) {
-            res.status(400).json({ response: error.message });
-        }
+    const { nome, idade, sexo, imagem } = req.body;
+    const disponivel = true; // Sempre disponível ao cadastrar
 
+    if (!nome || !idade || !sexo || !imagem) {
+        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
-})
+    try {
+        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel, imagem);
+        if (retorno.affectedRows > 0) {
+            res.status(200).json({ response: "Cadastro do animal realizado com sucesso" });
+        } else {
+            res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
+        }
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
 
 app.get('/meus_animais/:key', async (req, res) => {
     try {
