@@ -24,7 +24,7 @@ DROP TABLE IF EXISTS `animal`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `animal` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `idade` int DEFAULT NULL,
+  `dt_nascimento` date DEFAULT NULL,
   `doador` int NOT NULL,
   `adotador` int DEFAULT NULL,
   `nome` varchar(256) DEFAULT NULL,

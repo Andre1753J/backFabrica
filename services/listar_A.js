@@ -8,7 +8,7 @@ async function executaQuery(conexao, query, params) {
 export async function listarAnimaisDisponiveis() {
     const conexao = await pool.getConnection();
 
-    const query = 'SELECT id, nome, idade, sexo, doador FROM animal WHERE disponivel = 1';
+    const query = 'SELECT id, nome, dt_nascimento, sexo, doador FROM animal WHERE disponivel = 1';
 
     const animais = await executaQuery(conexao, query);
     conexao.release();

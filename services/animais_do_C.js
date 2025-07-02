@@ -11,7 +11,7 @@ export async function meusAnimais(key) {
     const [id, , senha] = quebrarKey(key);
 
     const query = `
-    SELECT id, nome, idade, sexo, disponivel, adotador
+    SELECT id, nome, dt_nascimento, sexo, disponivel, adotador
     FROM animal
     WHERE doador =?`;
 

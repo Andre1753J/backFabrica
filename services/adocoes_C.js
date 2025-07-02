@@ -10,7 +10,7 @@ export async function minhasAdocoes(key) {
     const [id, , senha] = quebrarKey(key);
     const conexao = await pool.getConnection();
     const query = `
-        SELECT id, nome, idade, sexo, disponivel
+        SELECT id, nome, dt_nascimento, sexo, disponivel
         FROM animal
         WHERE adotador = ?
     `;
