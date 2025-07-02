@@ -159,15 +159,15 @@ app.delete('/deletar_c/:key', async (req, res) => {
 
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, idade, sexo } = req.body;
+    const { nome, dt_nascimento, sexo } = req.body;
     const disponivel = true;
 
-    if (!nome || !idade || !sexo) {
+    if (!nome || !dt_nascimento || !sexo) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
     try {
         // Remova o null/imagem do final!
-        const retorno = await cadastrar_A(key, nome, idade, sexo, disponivel);
+        const retorno = await cadastrar_A(key, nome, dt_nascimento, sexo, disponivel);
         if (retorno.affectedRows > 0) {
             // Pegue o id inserido
             res.status(200).json({
@@ -243,15 +243,15 @@ app.delete('/remover_a/:key/:animalID', async (req, res) => {
 
 app.patch('/editar_a/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, idade, sexo, disponivel, adotador, animalID } = req.body;
-    if (nome == undefined && idade == undefined && sexo == undefined && disponivel == undefined && adotador == undefined) {
+    const { nome, dt_nascimento, sexo, disponivel, adotador, animalID } = req.body;
+    if (nome == undefined && dt_nascimento == undefined && sexo == undefined && disponivel == undefined && adotador == undefined) {
         res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
     } else {
         if (animalID == undefined) {
             res.status(404).json({ response: "Preencha o ID do animal" });
         } else {
             try {
-                const retorno = await editar_A(key, nome, idade, sexo, disponivel, adotador, animalID);
+                const retorno = await editar_A(key, nome, dt_nascimento, sexo, disponivel, adotador, animalID);
                 if (retorno.affectedRows > 0) {
                     res.status(200).json({ response: "Informações alteradas com sucesso" });
                 }
