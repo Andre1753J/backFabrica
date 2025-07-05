@@ -92,7 +92,7 @@ app.get('/info_c/:key', async (req, res) => {
 
 app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2 } = req.body;
+    const { nome, cpf, rg, dt_nascimento, sexo, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2 } = req.body;
 
     if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !rg || !sexo || !bairro || !estado || !rua) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
@@ -107,7 +107,7 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
             return res.status(400).json({ response: "CEP inválido" });
         }
 
-        const retorno = await cadastropt2(key, nome, cpf, cep, complemento, dt_nascimento, telefone, rg, sexo, bairro, estado, rua, telefone2);
+        const retorno = await cadastropt2(key, nome, cpf, rg, dt_nascimento, sexo, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2);
 
         if (retorno.affectedRows > 0) {
             res.status(200).json({ response: "Cadastro Finalizado com sucesso" });
@@ -123,8 +123,17 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
 
 app.patch('/editar_c/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, cpf, cep, complemento, dt_nascimento } = req.body || {};
-    if (nome == undefined && cpf == undefined && cep == undefined && complemento == undefined && dt_nascimento == undefined) {
+    const {
+        nome, cpf, rg, dt_nascimento, sexo,
+        cep, endereco, bairro, estado, cidade, complemento,
+        telefone, telefone2
+    } = req.body || {};
+
+    if (
+        nome === undefined && cpf === undefined && rg === undefined && dt_nascimento === undefined && sexo === undefined &&
+        cep === undefined && endereco === undefined && bairro === undefined && estado === undefined && cidade === undefined &&
+        complemento === undefined && telefone === undefined && telefone2 === undefined
+    ) {
         res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
     } else {
         try {

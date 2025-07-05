@@ -1,5 +1,6 @@
 import pool from "./connection.js";
 import { quebrarKey } from "./quebraKey.js";
+import { calcularIdade } from "./calcularIdade.js";
 
 async function executaQuery(conexao, query, params) {
     const resposta_query = await conexao.execute(query, params);
@@ -11,7 +12,7 @@ export async function buscarCliente(key) {
     const [id, email, senha] = quebrarKey(key);
 
     const query = `
-        SELECT id, email, nome, cpf, cep, complemento, dt_nascimento, telefone
+        SELECT id, nome, cpf, rg, dt_nascimento, sexo, email, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2
         FROM cliente
         WHERE id = ? AND email = ? AND senha = ?`;
 
@@ -21,5 +22,9 @@ export async function buscarCliente(key) {
     if (resultado.length === 0) {
         throw new Error("Cliente não encontrado ou chave inválida");
     }
-    return resultado[0];
+    const cliente = resultado[0];
+    return {
+        ...cliente,
+        idade: calcularIdade(cliente.dt_nascimento)
+    };
 }

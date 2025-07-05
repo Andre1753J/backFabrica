@@ -22,24 +22,24 @@
 DROP TABLE IF EXISTS `cliente`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cliente` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(45) DEFAULT NULL,
-  `estado` varchar(64) DEFAULT NULL,
-  `rua` varchar(64) DEFAULT NULL,
-  `complemento` varchar(64) DEFAULT NULL,
-  `dt_nascimento` date DEFAULT NULL,
-  `email` varchar(254) NOT NULL,
-  `senha` varchar(1024) NOT NULL,
-  `cpf` varchar(15) DEFAULT NULL,
-  `cep` varchar(9) DEFAULT NULL,
-  `telefone` varchar(20) DEFAULT NULL,
-  `rg` varchar(20) DEFAULT NULL,
-  `bairro` varchar(50) DEFAULT NULL,
-  `telefone2` varchar(20) DEFAULT NULL,
-  `sexo` enum('M','F') DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE cliente (
+  `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `nome` VARCHAR(45),
+  `cpf` VARCHAR(15),
+  `rg` VARCHAR(20),
+  `dt_nascimento` DATE,
+  `sexo` ENUM('M','F'),
+  `email` VARCHAR(254) NOT NULL,
+  `senha` VARCHAR(1024) NOT NULL,
+  `cep` VARCHAR(9),
+  `endereco` VARCHAR(256),
+  `bairro` VARCHAR(50),
+  `estado` VARCHAR(64),
+  `cidade` VARCHAR(64),
+  `complemento` VARCHAR(64),
+  `telefone` VARCHAR(20),
+  `telefone2` VARCHAR(20)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
