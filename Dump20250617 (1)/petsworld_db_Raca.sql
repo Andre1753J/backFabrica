@@ -20,16 +20,13 @@
 --
 
 DROP TABLE IF EXISTS `Raca`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Raca` (
-  `idRaca` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(45) DEFAULT NULL,
-  `idAnimal` int NOT NULL,
+  `idRaca` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(45) NOT NULL,
+  `idEspecie` INT NOT NULL,
   PRIMARY KEY (`idRaca`),
-  KEY `idAnimal` (`idAnimal`),
-  CONSTRAINT `Raca_ibfk_1` FOREIGN KEY (`idAnimal`) REFERENCES `animal` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  FOREIGN KEY (`idEspecie`) REFERENCES `Especie` (`idEspecie`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
