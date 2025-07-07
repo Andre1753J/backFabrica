@@ -17,6 +17,8 @@ import { minhasAdocoes } from "./services/adocoes_C.js";
 import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
 import { buscarCliente } from './services/info_C.js';
+import { detalharAnimal } from './services/dados_A.js';
+import { filtrarAnimaisSimples } from './services/filtrar_A.js';
 
 import { databankCheck } from './DataBankCheck.js';
 
@@ -168,23 +170,31 @@ app.delete('/deletar_c/:key', async (req, res) => {
 
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, dt_nascimento, sexo } = req.body;
-    const disponivel = true;
+    const {
+        nome, dt_nascimento, sexo, disponivel, descricao,
+        castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
+    } = req.body;
 
-    if (!nome || !dt_nascimento || !sexo) {
+    // Validação dos campos obrigatórios
+    if (
+        !nome || !dt_nascimento || !sexo ||
+        idEspecie === undefined || idRaca === undefined ||
+        idCor === undefined || idPorte === undefined
+    ) {
         return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
     }
     try {
-        // Remova o null/imagem do final!
-        const retorno = await cadastrar_A(key, nome, dt_nascimento, sexo, disponivel);
+        const retorno = await cadastrar_A(
+            key, nome, dt_nascimento, sexo, disponivel, descricao,
+            castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
+        );
         if (retorno.affectedRows > 0) {
-            // Pegue o id inserido
             res.status(200).json({
                 response: "Cadastro do animal realizado com sucesso",
-                id: retorno.insertId // <-- importante!
+                id: retorno.insertId
             });
         } else {
-            res.status(400).json({ response: "Informação invalida ou animal ja cadastrado" });
+            res.status(400).json({ response: "Informação invalida ou animal já cadastrado" });
         }
     } catch (error) {
         res.status(400).json({ response: error.message });
@@ -252,28 +262,40 @@ app.delete('/remover_a/:key/:animalID', async (req, res) => {
 
 app.patch('/editar_a/:key', async (req, res) => {
     const { key } = req.params;
-    const { nome, dt_nascimento, sexo, disponivel, adotador, animalID } = req.body;
-    if (nome == undefined && dt_nascimento == undefined && sexo == undefined && disponivel == undefined && adotador == undefined) {
-        res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
-    } else {
-        if (animalID == undefined) {
-            res.status(404).json({ response: "Preencha o ID do animal" });
-        } else {
-            try {
-                const retorno = await editar_A(key, nome, dt_nascimento, sexo, disponivel, adotador, animalID);
-                if (retorno.affectedRows > 0) {
-                    res.status(200).json({ response: "Informações alteradas com sucesso" });
-                }
-                else {
-                    res.status(400).json({ response: "Campo inválido ou ID informado inválido" });
-                }
-            }
-            catch (error) {
-                res.status(400).json({ response: error.message });
-            }
-        }
+    const {
+        nome, dt_nascimento, sexo, disponivel, descricao,
+        castrado, vacinado, vermifugado, adotador,
+        idEspecie, idRaca, idCor, idPorte, animalID
+    } = req.body;
+
+    // Verifica se pelo menos um campo foi enviado para edição
+    if (
+        nome === undefined && dt_nascimento === undefined && sexo === undefined &&
+        disponivel === undefined && descricao === undefined &&
+        castrado === undefined && vacinado === undefined && vermifugado === undefined &&
+        adotador === undefined && idEspecie === undefined && idRaca === undefined &&
+        idCor === undefined && idPorte === undefined
+    ) {
+        return res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
     }
-})
+    if (animalID === undefined) {
+        return res.status(404).json({ response: "Preencha o ID do animal" });
+    }
+    try {
+        const retorno = await editar_A(
+            key, nome, dt_nascimento, sexo, disponivel, descricao,
+            castrado, vacinado, vermifugado, adotador,
+            idEspecie, idRaca, idCor, idPorte, animalID
+        );
+        if (retorno.affectedRows > 0) {
+            res.status(200).json({ response: "Informações alteradas com sucesso" });
+        } else {
+            res.status(400).json({ response: "Campo inválido ou ID informado inválido" });
+        }
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
 
 app.get('/listar_animais', async (req, res) => {
     try {
@@ -288,6 +310,29 @@ app.get('/listar_animais', async (req, res) => {
         res.status(500).json({ response: "Erro interno ao listar animais" });
     }
 })
+
+app.get('/filtrar_animais', async (req, res) => {
+    try {
+        const { especie, sexo, disponivel } = req.query;
+        const animais = await filtrarAnimaisSimples({
+            especie,
+            sexo,
+            disponivel: disponivel !== undefined ? disponivel === "true" : undefined
+        });
+        res.status(200).json({ response: animais });
+    } catch (error) {
+        res.status(400).json({ response: error.message });
+    }
+});
+
+app.get('/animal/:id', async (req, res) => {
+    try {
+        const animal = await detalharAnimal(req.params.id);
+        res.status(200).json({ animal });
+    } catch (error) {
+        res.status(404).json({ erro: error.message });
+    }
+});
 
 app.get('/imagem/:nome', (req, res) => {
     try {
