@@ -17,7 +17,7 @@ import { minhasAdocoes } from "./services/adocoes_C.js";
 import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
 import { buscarCliente } from './services/info_C.js';
-import { detalharAnimal } from './services/dados_A.js';
+// import { detalharAnimal } from './services/dados_Animais.js';
 import { filtrarAnimaisSimples } from './services/filtrar_A.js';
 
 import { databankCheck } from './DataBankCheck.js';
@@ -27,7 +27,7 @@ const check = databankCheck('./DataBank.ISO');
 const app = express();
 
 app.use(cors({
-    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br", "*"],
+    origin: ['http://localhost:3000', "https://petsworld.dev.vilhena.ifro.edu.br"],
 }));
 app.use(express.json());
 
