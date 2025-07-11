@@ -96,8 +96,9 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
     const { nome, cpf, rg, dt_nascimento, sexo, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2 } = req.body;
 
-    if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !rg || !sexo || !bairro || !estado || !endereco) {
-        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
+    // TODO: RG é opcional apenas para desenvolvimento. Reativar a obrigatoriedade.
+    if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !sexo || !bairro || !estado || !endereco) {
+        return res.status(400).json({ response: "Preencha todos os campos obrigatórios" });
     }
 
     try {
