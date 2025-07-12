@@ -9,25 +9,30 @@ async function executaQuery(conexao, query, params) {
  * Filtro simples para animais.
  * Parâmetros opcionais: especie, sexo, disponivel
  */
-export async function filtrarAnimaisSimples({ especie, sexo, disponivel }) {
+export async function filtrarAnimaisSimples({ especie, sexo, porte, disponivel }) {
     const conexao = await pool.getConnection();
 
     let query = `
         SELECT 
-            a.id, a.nome, a.sexo, e.nome AS especie, a.disponivel
+            a.id, a.nome, a.sexo, a.imagem, e.nome AS especie, p.nome as porte, a.disponivel
         FROM animal a
         JOIN Especie e ON a.idEspecie = e.idEspecie
+        JOIN Porte p ON a.idPorte = p.idPorte
         WHERE 1=1
     `;
     const params = [];
 
     if (especie) {
-        query += ' AND a.idEspecie = ?';
+        query += ' AND e.nome = ?';
         params.push(especie);
     }
     if (sexo) {
         query += ' AND a.sexo = ?';
         params.push(sexo);
+    }
+    if (porte) {
+        query += ' AND p.nome = ?';
+        params.push(porte);
     }
     if (typeof disponivel === "boolean") {
         query += ' AND a.disponivel = ?';
@@ -41,7 +46,9 @@ export async function filtrarAnimaisSimples({ especie, sexo, disponivel }) {
         id: animal.id,
         nome: animal.nome,
         sexo: animal.sexo,
+        imagem: animal.imagem,
         especie: animal.especie,
+        porte: animal.porte,
         disponivel: !!animal.disponivel
     }));
 }

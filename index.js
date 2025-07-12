@@ -314,10 +314,11 @@ app.get('/listar_animais', async (req, res) => {
 
 app.get('/filtrar_animais', async (req, res) => {
     try {
-        const { especie, sexo, disponivel } = req.query;
+        const { especie, sexo, porte, disponivel } = req.query;
         const animais = await filtrarAnimaisSimples({
             especie,
             sexo,
+            porte,
             disponivel: disponivel !== undefined ? disponivel === "true" : undefined
         });
         res.status(200).json({ response: animais });
