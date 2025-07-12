@@ -114,16 +114,36 @@ router.post('/upload/:key/type/:imageType/animal/:idAnimal', async (req, res, ne
         console.error(error);
         return res.status(500).json('Erro interno: ' + error.message);
     }
-}, upload.single('imagem'), (req, res) => {
+}, upload.single('imagem'), async (req, res) => {
     // Verificação do tipo de arquivo
     if (!req.file) {
-        return res.status(400).json('Nenhum arquivo enviado.');
+        return res.status(400).json({ erro: 'Nenhum arquivo enviado.' });
     }
     if (!req.file.mimetype.startsWith('image/')) {
-        return res.status(400).json('Arquivo enviado não é uma imagem.');
+        return res.status(400).json({ erro: 'Arquivo enviado não é uma imagem.' });
     }
-    res.json(`Imagem salva como: ${req.file.filename}, com a chave: ${req.params.key}`);
+
+    const filename = req.file.filename;
+    const imageID = req.imageID;
+    const imageType = req.imageType;
+
+    if (!imageID) {
+        return res.status(500).json({ erro: 'ID da imagem não foi gerado no passo anterior.' });
+    }
+
+    const conexao = await pool.getConnection();
+    try {
+        const tableToUpdate = imageType == 1 ? 'clienteImg' : 'animalImg';
+        const query = `UPDATE ${tableToUpdate} SET nome_imagem = ? WHERE id = ?`;
+        await executaQuery(conexao, query, [filename, imageID]);
+        conexao.release();
+
+        res.status(200).json({ mensagem: `Imagem salva como: ${filename}`, filename: filename });
+    } catch (error) {
+        conexao.release();
+        console.error("Erro ao atualizar o nome da imagem no banco:", error);
+        res.status(500).json({ erro: "Falha ao salvar a referência da imagem no banco de dados." });
+    }
 });
 
 export default router;
-
