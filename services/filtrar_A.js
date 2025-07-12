@@ -14,10 +14,11 @@ export async function filtrarAnimaisSimples({ especie, sexo, porte, disponivel }
 
     let query = `
         SELECT 
-            a.id, a.nome, a.sexo, a.imagem, e.nome AS especie, p.nome as porte, a.disponivel
+            a.id, a.nome, a.sexo, e.nome AS especie, p.nome as porte, a.disponivel,
+            (SELECT i.nome_imagem FROM animalImg i WHERE i.animal = a.id ORDER BY i.id LIMIT 1) AS imagem
         FROM animal a
-        JOIN Especie e ON a.idEspecie = e.idEspecie
-        JOIN Porte p ON a.idPorte = p.idPorte
+        LEFT JOIN Especie e ON a.idEspecie = e.idEspecie
+        LEFT JOIN Porte p ON a.idPorte = p.idPorte
         WHERE 1=1
     `;
     const params = [];

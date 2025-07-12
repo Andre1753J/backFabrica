@@ -10,24 +10,33 @@ async function executaQuery(conexao, query, params) {
  */
 export async function detalharAnimal(animalID) {
     const conexao = await pool.getConnection();
-    const query = `
+    const animalQuery = `
         SELECT 
             a.id, a.nome, a.dt_nascimento, a.sexo, a.doador, a.adotador, a.descricao,
             a.castrado, a.vacinado, a.vermifugado, a.disponivel,
             e.nome AS especie, r.nome AS raca, c.nome AS cor, p.nome AS porte
         FROM animal a
-        JOIN Especie e ON a.idEspecie = e.idEspecie
-        JOIN Raca r ON a.idRaca = r.idRaca
-        JOIN Cor c ON a.idCor = c.idCor
-        JOIN Porte p ON a.idPorte = p.idPorte
+        LEFT JOIN Especie e ON a.idEspecie = e.idEspecie
+        LEFT JOIN Raca r ON a.idRaca = r.idRaca
+        LEFT JOIN Cor c ON a.idCor = c.idCor
+        LEFT JOIN Porte p ON a.idPorte = p.idPorte
         WHERE a.id = ?
         LIMIT 1
     `;
-    const resultado = await executaQuery(conexao, query, [animalID]);
+    const animalResult = await executaQuery(conexao, animalQuery, [animalID]);
+
+    if (!animalResult.length) {
+        conexao.release();
+        throw new Error("Animal não encontrado");
+    }
+
+    const animal = animalResult[0];
+
+    const imagensQuery = `SELECT nome_imagem FROM animalImg WHERE animal = ? ORDER BY id`;
+    const imagensResult = await executaQuery(conexao, imagensQuery, [animalID]);
+
     conexao.release();
 
-    if (!resultado.length) throw new Error("Animal não encontrado");
-    const animal = resultado[0];
     return {
         id: animal.id,
         nome: animal.nome,
@@ -43,6 +52,7 @@ export async function detalharAnimal(animalID) {
         especie: animal.especie,
         raca: animal.raca,
         cor: animal.cor,
-        porte: animal.porte
+        porte: animal.porte,
+        imagens: imagensResult.map(img => img.nome_imagem)
     };
 }
