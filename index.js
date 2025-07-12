@@ -1,6 +1,7 @@
 import express from "express";
 import cors from 'cors';
 import { fileURLToPath } from 'url';
+import path from 'path';
 import { cadastrar, login } from './services/cadastrar_C.js';
 import { cadastropt2, editar_c } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
@@ -16,8 +17,8 @@ import { removerAnimal } from "./services/remover_A.js";
 import { minhasAdocoes } from "./services/adocoes_C.js";
 import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
-import { buscarCliente } from './services/info_C.js';
-// import { detalharAnimal } from './services/dados_Animais.js';
+import { buscarCliente } from './services/info_C.js'; 
+import { detalharAnimal } from './services/info_A.js';
 import { filtrarAnimaisSimples } from './services/filtrar_A.js';
 
 import { databankCheck } from './DataBankCheck.js';
@@ -337,28 +338,32 @@ app.get('/animal/:id', async (req, res) => {
 });
 
 app.get('/imagem/:nome', (req, res) => {
-    try {
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
 
-        const nomeArquivo = req.params.nome;
-        if (!nomeArquivo) {
-            return res.status(400).json({ erro: "Nome do arquivo não fornecido" });
-        }
+    const nomeArquivo = req.params.nome;
 
-        const caminho = path.join(__dirname, './as tinguis', nomeArquivo);
-
-        res.sendFile(caminho, (err) => {
-            if (err) {
-                console.error("Erro:", err.message);
-                res.status(404).json({ erro: "Imagem não encontrada" });
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ erro: "Erro interno" });
-        console.log(error);
+    // Segurança básica: impede que acessem pastas superiores (ex: ../../)
+    if (!nomeArquivo || nomeArquivo.includes('..')) {
+      return res.status(400).json({ erro: "Nome de arquivo inválido." });
     }
 
+    // Cria o caminho absoluto para o arquivo
+    const caminho = path.join(__dirname, 'as tinguis', nomeArquivo);
+
+    // Log para depuração: mostra no console o caminho exato que está sendo procurado
+    console.log(`Tentando servir a imagem: ${caminho}`);
+
+    res.sendFile(caminho, (err) => {
+      if (err) {
+        res.status(404).send("Imagem não encontrada");
+      }
+    });
+  } catch (error) {
+    console.error("Erro interno na rota /imagem:", error);
+    res.status(500).json({ erro: "Erro interno no servidor" });
+  }
 });
 
 app.post('/solicitar_adocao/:key', async (req, res) => {
