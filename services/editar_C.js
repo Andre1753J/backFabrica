@@ -61,7 +61,7 @@ export async function editar_c(key, updates) {
 
         // Se não houver campos para atualizar (além da senha), não faz nada.
         if (Object.keys(camposParaAtualizar).length === 0) {
-            return { affectedRows: 1, message: "Nenhum dado para atualizar, mas senha confirmada." };
+            return { affectedRows: 1, message: "Nenhum dado para atualizar, mas senha confirmada.", newKey: key };
         }
 
         // 3. Construir e executar a query de atualização
@@ -77,7 +77,16 @@ export async function editar_c(key, updates) {
         if (retorno.affectedRows === 0) {
             throw new Error("Não foi possível atualizar o cliente. Chave inválida ou dados incorretos.");
         }
-        return retorno;
+
+        // 4. Buscar os dados atualizados para gerar a nova chave
+        const [clienteAtualizado] = await executaQuery(conexao, 'SELECT email, senha FROM cliente WHERE id = ?', [id]);
+        if (!clienteAtualizado) {
+            throw new Error("Erro ao buscar dados atualizados do cliente.");
+        }
+
+        // 5. Gerar e retornar a nova chave
+        const newKey = `${id}=-=${clienteAtualizado.email}=-=${clienteAtualizado.senha}`;
+        return { affectedRows: retorno.affectedRows, newKey };
     } finally {
         conexao.release();
     }

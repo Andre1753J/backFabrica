@@ -108,7 +108,7 @@ app.patch('/editar_cliente/:key', async (req, res) => {
         const retorno = await editar_c(key, updates);
 
         if (retorno && retorno.affectedRows > 0) {
-            res.status(200).json({ message: "Alterações nas informações feitas com sucesso" });
+            res.status(200).json({ message: "Alterações nas informações feitas com sucesso", data: { newKey: retorno.newKey } });
         } else {
             res.status(400).json({ error: "Nenhuma alteração foi feita. Verifique os dados." });
         }
