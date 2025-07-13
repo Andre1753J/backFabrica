@@ -29,7 +29,7 @@ export async function filtrarAnimaisSimples({ especie, sexo, porte, disponivel }
     }
     if (sexo) {
         query += ' AND a.sexo = ?';
-        params.push(sexo);
+        params.push(sexo === 'macho' ? 'M' : 'F');
     }
     if (porte) {
         query += ' AND p.nome = ?';
