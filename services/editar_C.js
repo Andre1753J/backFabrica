@@ -103,3 +103,50 @@ export async function editar_c(key, updates) {
         conexao.release();
     }
 }
+
+export async function mudar_senha(key, { senhaAtual, novaSenha, confirmarNovaSenha }) {
+    const conexao = await pool.getConnection();
+    try {
+        // 1. Validação de entrada
+        if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
+            throw new Error("Todos os campos são obrigatórios.");
+        }
+        if (novaSenha.length < 8) {
+            throw new Error("A nova senha deve ter pelo menos 8 caracteres.");
+        }
+        if (novaSenha !== confirmarNovaSenha) {
+            throw new Error("As novas senhas não coincidem.");
+        }
+
+        const [id, email] = quebrarKey(key);
+
+        // 2. Busca o usuário atual no banco para validar a senha
+        const [currentUser] = await executaQuery(conexao, 'SELECT * FROM cliente WHERE id = ?', [id]);
+        if (!currentUser) {
+            throw new Error("Usuário não encontrado.");
+        }
+
+        // 3. Valida a senha atual fornecida pelo usuário
+        const senhaAtualCorreta = await bcrypt.compare(senhaAtual, currentUser.senha);
+        if (!senhaAtualCorreta) {
+            throw new Error("Senha atual incorreta.");
+        }
+
+        // 4. Verifica se a nova senha é igual à antiga
+        const mesmaSenha = await bcrypt.compare(novaSenha, currentUser.senha);
+        if (mesmaSenha) {
+            throw new Error("A nova senha não pode ser igual à senha atual.");
+        }
+
+        // 5. Hash da nova senha e atualização no banco
+        const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+        await executaQuery(conexao, 'UPDATE cliente SET senha = ? WHERE id = ?', [novaSenhaHash, id]);
+
+        // 6. Gerar e retornar a nova chave de autenticação
+        const newKey = gerarKey(id, email, novaSenhaHash);
+        return { message: "Senha alterada com sucesso.", newKey };
+
+    } finally {
+        conexao.release();
+    }
+}

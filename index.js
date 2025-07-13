@@ -2,8 +2,8 @@ import express from "express";
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import { cadastrar, login } from './services/cadastrar_C.js';
-import { cadastropt2, editar_c } from "./services/editar_C.js";
+import { cadastrar, login } from './services/cadastrar_C.js'; 
+import { cadastropt2, editar_c, mudar_senha } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
 import { editar_A } from "./services/editar_A.js";
 import { validarCEP, validarCPF, validarEmail, validarTelefone } from "./services/validacoes.js";
@@ -117,6 +117,21 @@ app.patch('/editar_cliente/:key', async (req, res) => {
         }
     } catch (error) {
         console.error("Erro ao editar cliente:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.patch('/mudar_senha/:key', async (req, res) => {
+    const { key } = req.params;
+    try {
+        const resultado = await mudar_senha(key, req.body);
+        res.status(200).json({
+            message: resultado.message,
+            data: { newKey: resultado.newKey }
+        });
+    } catch (error) {
+        console.error("Erro ao mudar senha:", error.message);
+        // Retorna 400 para erros de validação ou de usuário, que são os esperados aqui.
         res.status(400).json({ error: error.message });
     }
 });
