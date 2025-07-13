@@ -43,39 +43,42 @@ export async function cadastropt2(
 }
 
 // Função para editar campos selecionados do cliente
-export async function editar_c(
-    key, nome, cpf, rg, dt_nascimento, sexo,
-    cep, endereco, bairro, estado, cidade, complemento,
-    telefone, telefone2
-) {
+export async function editar_c(key, updates) {
     const conexao = await pool.getConnection();
+    const [id, , senha] = quebrarKey(key);
 
-    const campos = {};
-    if (nome !== undefined) campos.nome = nome;
-    if (cpf !== undefined) campos.cpf = cpf;
-    if (rg !== undefined) campos.rg = rg;
-    if (dt_nascimento !== undefined) campos.dt_nascimento = dt_nascimento;
-    if (sexo !== undefined) campos.sexo = sexo;
-    if (cep !== undefined) campos.cep = cep;
-    if (endereco !== undefined) campos.endereco = endereco;
-    if (bairro !== undefined) campos.bairro = bairro;
-    if (estado !== undefined) campos.estado = estado;
-    if (cidade !== undefined) campos.cidade = cidade;
-    if (complemento !== undefined) campos.complemento = complemento;
-    if (telefone !== undefined) campos.telefone = telefone;
-    if (telefone2 !== undefined) campos.telefone2 = telefone2;
+    try {
+        // 1. Validar a senha atual
+        if (senha !== updates.senhaAtual) {
+            throw new Error("Senha atual incorreta.");
+        }
 
-    const [id, email, senha] = quebrarKey(key);
+        // 2. Preparar os campos para atualização, ignorando a senha
+        const camposParaAtualizar = {};
+        if (updates.nome !== undefined) camposParaAtualizar.nome = updates.nome;
+        if (updates.email !== undefined) camposParaAtualizar.email = updates.email;
+        if (updates.telefone !== undefined) camposParaAtualizar.telefone = updates.telefone;
 
-    const setClause = Object.keys(campos)
-        .map((campo) => `${campo} = ?`)
-        .join(', ');
+        // Se não houver campos para atualizar (além da senha), não faz nada.
+        if (Object.keys(camposParaAtualizar).length === 0) {
+            return { affectedRows: 1, message: "Nenhum dado para atualizar, mas senha confirmada." };
+        }
 
-    const query = `UPDATE cliente SET ${setClause} WHERE id = ? AND email = ? AND senha = ?`;
+        // 3. Construir e executar a query de atualização
+        const setClause = Object.keys(camposParaAtualizar)
+            .map((campo) => `${campo} = ?`)
+            .join(', ');
 
-    const valores = [...Object.values(campos), id, email, senha];
+        const query = `UPDATE cliente SET ${setClause} WHERE id = ? AND senha = ?`;
+        const valores = [...Object.values(camposParaAtualizar), id, senha];
 
-    const retorno = await executaQuery(conexao, query, valores);
-    conexao.release();
-    return retorno;
+        const retorno = await executaQuery(conexao, query, valores);
+
+        if (retorno.affectedRows === 0) {
+            throw new Error("Não foi possível atualizar o cliente. Chave inválida ou dados incorretos.");
+        }
+        return retorno;
+    } finally {
+        conexao.release();
+    }
 }

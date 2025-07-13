@@ -57,11 +57,11 @@ app.post('/cadastrar_c', async (req, res) => {
         validarEmail(email);
 
         const retorno = await cadastrar(email, senha);
-
-        if (retorno[0].affectedRows > 0) {
-            res.status(200).json({ response: retorno[1] });
+        // O service já lança erro se o e-mail existir, então só precisamos tratar o sucesso.
+        if (retorno && retorno[1]) {
+            res.status(201).json({ message: "Cadastro iniciado com sucesso!", data: { key: retorno[1] } });
         } else {
-            res.status(400).json({ response: "Email não existente, favor colocar um valido" });
+            res.status(400).json({ error: "Não foi possível iniciar o cadastro." });
         }
 
     } catch (error) {
@@ -69,7 +69,7 @@ app.post('/cadastrar_c', async (req, res) => {
             res.status(400).json({ erro: 'E-mail inválido' });
         } else {
             console.error(error);
-            res.status(500).json({ error: "Erro interno ao cadastrar" });
+            res.status(500).json({ error: "Erro interno no servidor." });
         }
     }
 });
@@ -78,28 +78,53 @@ app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
         const retorno = await login(email, senha);
-        res.status(200).json({ response: retorno });
+        res.status(200).json({ data: { key: retorno } });
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro no login:", error.message);
+        res.status(401).json({ error: error.message });
     }
 })
 
 app.get('/info_c/:key', async (req, res) => {
     try {
         const cliente = await buscarCliente(req.params.key);
-        res.status(200).json({ cliente });
+        res.status(200).json({ data: cliente });
     } catch (error) {
-        res.status(400).json({ erro: error.message });
+        console.error("Erro ao buscar cliente:", error.message);
+        res.status(error.status || 400).json({ error: error.message });
     }
 })
+
+app.patch('/editar_cliente/:key', async (req, res) => {
+    const { key } = req.params;
+    const updates = req.body || {};
+
+    // A senha atual é necessária para confirmar as alterações
+    if (!updates.senhaAtual) { // A lógica de validação de senha está no service
+        return res.status(400).json({ error: "A senha atual é obrigatória para editar o perfil." });
+    }
+
+    try {
+        const retorno = await editar_c(key, updates);
+
+        if (retorno && retorno.affectedRows > 0) {
+            res.status(200).json({ message: "Alterações nas informações feitas com sucesso" });
+        } else {
+            res.status(400).json({ error: "Nenhuma alteração foi feita. Verifique os dados." });
+        }
+    } catch (error) {
+        console.error("Erro ao editar cliente:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
 
 app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     const { key } = req.params;
     const { nome, cpf, rg, dt_nascimento, sexo, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2 } = req.body;
 
     // TODO: RG é opcional apenas para desenvolvimento. Reativar a obrigatoriedade.
-    if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !sexo || !bairro || !estado || !endereco) {
-        return res.status(400).json({ response: "Preencha todos os campos obrigatórios" });
+    if (!nome || !cpf || !cep || !dt_nascimento || !telefone || !sexo || !bairro || !estado || !endereco || !cidade) {
+        return res.status(400).json({ error: "Preencha todos os campos obrigatórios" });
     }
 
     try {
@@ -108,52 +133,20 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
 
         const cepValido = await validarCEP(cep);
         if (!cepValido) {
-            return res.status(400).json({ response: "CEP inválido" });
+            return res.status(400).json({ error: "CEP inválido" });
         }
 
         const retorno = await cadastropt2(key, nome, cpf, rg, dt_nascimento, sexo, cep, endereco, bairro, estado, cidade, complemento, telefone, telefone2);
 
         if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Cadastro Finalizado com sucesso" });
+            res.status(200).json({ message: "Cadastro Finalizado com sucesso" });
         } else {
-            res.status(400).json({ response: "O cadastro que deseja realizar já é existente" });
+            res.status(400).json({ error: "O cadastro que deseja realizar já é existente" });
         }
-
     } catch (error) {
-
-        res.status(400).json({ response: error.message });
+        console.error("Erro na parte 2 do cadastro:", error.message);
+        res.status(400).json({ error: error.message });
     }
-});
-
-app.patch('/editar_c/:key', async (req, res) => {
-    const { key } = req.params;
-    const {
-        nome, cpf, rg, dt_nascimento, sexo,
-        cep, endereco, bairro, estado, cidade, complemento,
-        telefone, telefone2
-    } = req.body || {};
-
-    if (
-        nome === undefined && cpf === undefined && rg === undefined && dt_nascimento === undefined && sexo === undefined &&
-        cep === undefined && endereco === undefined && bairro === undefined && estado === undefined && cidade === undefined &&
-        complemento === undefined && telefone === undefined && telefone2 === undefined
-    ) {
-        res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
-    } else {
-        try {
-            const retorno = await editar_c(key, nome, cpf, cep, complemento, dt_nascimento);
-
-            if (retorno.affectedRows > 0) {
-                res.status(200).json({ response: "Alterações nas informações feitas com sucesso" });
-            } else {
-                res.status(400).json({ response: "alguma informação esta invalida" });
-            }
-        }
-        catch (error) {
-            res.status(400).json({ response: error.message });
-        }
-    }
-
 })
 
 app.delete('/deletar_c/:key', async (req, res) => {
@@ -164,8 +157,9 @@ app.delete('/deletar_c/:key', async (req, res) => {
             return res.status(404).json({ error: "Cliente não encontrado ou já deletado." });
         }
 
-        res.status(200).json({ mensagem: "Cliente deletado com sucesso" });
+        res.status(200).json({ message: "Cliente deletado com sucesso" });
     } catch (error) {
+        console.error("Erro ao deletar cliente:", error.message);
         res.status(400).json({ error: error.message });
     }
 });
@@ -183,32 +177,34 @@ app.post('/cadastrar_a/:key', async (req, res) => {
         idEspecie === undefined || idRaca === undefined ||
         idCor === undefined || idPorte === undefined
     ) {
-        return res.status(400).json({ response: "Preencha todos os campos OBRIGATÓRIOS" });
+        return res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
     }
     try {
         const retorno = await cadastrar_A(
             key, nome, dt_nascimento, sexo, descricao,
             castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
         );
-        if (retorno.affectedRows > 0) {
-            res.status(200).json({
-                response: "Cadastro do animal realizado com sucesso",
-                id: retorno.insertId
+        if (retorno && retorno.affectedRows > 0) {
+            res.status(201).json({
+                message: "Cadastro do animal realizado com sucesso.",
+                data: { id: retorno.insertId }
             });
         } else {
-            res.status(400).json({ response: "Informação invalida ou animal já cadastrado" });
+            res.status(400).json({ error: "Informação inválida ou animal já cadastrado." });
         }
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao cadastrar animal:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
 app.get('/meus_animais/:key', async (req, res) => {
     try {
         const animais = await meusAnimais(req.params.key);
-        res.status(200).json({ animais });
+        res.status(200).json({ data: animais });
     } catch (error) {
-        res.status(400).json({ erro: error.message });
+        console.error("Erro ao listar meus animais:", error.message);
+        res.status(400).json({ error: error.message });
     }
 })
 
@@ -216,9 +212,10 @@ app.get('/minhas_adocoes/:key', async (req, res) => {
     const { key } = req.params;
     try {
         const adotados = await minhasAdocoes(key);
-        res.status(200).json({ response: adotados });
+        res.status(200).json({ data: adotados });
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao listar minhas adoções:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
@@ -226,9 +223,10 @@ app.get('/solicitacoes_recebidas/:key', async (req, res) => {
     const { key } = req.params;
     try {
         const solicitacoes = await solicitacoesRecebidas(key);
-        res.status(200).json({ response: solicitacoes });
+        res.status(200).json({ data: solicitacoes });
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao listar solicitações recebidas:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
@@ -239,35 +237,34 @@ app.delete('/cancelar_adocao/:key/:animalID', async (req, res) => {
         const resultado = await cancelarAdocao(key, animalID);
 
         if (resultado.cancelado) {
-            res.status(200).json({
-                response: "Adoção cancelada com sucesso",
-                animalAtualizado: resultado.atualizouAnimal
-            });
+            res.status(200).json({ message: "Adoção cancelada com sucesso." });
         } else {
             res.status(404).json({
-                response: resultado.motivo || "Não foi possível cancelar a adoção"
+                error: resultado.motivo || "Não foi possível cancelar a adoção."
             });
         }
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao cancelar adoção:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
 app.delete('/remover_a/:key/:animalID', async (req, res) => {
     try {
         await removerAnimal(req.params.key, req.params.animalID);
-        res.status(200).json({ mensagem: "Animal removido com sucesso." });
+        res.status(200).json({ message: "Animal removido com sucesso." });
     } catch (error) {
-        res.status(400).json({ erro: error.message });
+        console.error("Erro ao remover animal:", error.message);
+        res.status(400).json({ error: error.message });
     }
 })
 
-app.patch('/editar_a/:key', async (req, res) => {
-    const { key } = req.params;
+app.patch('/editar_a/:key/:animalID', async (req, res) => {
+    const { key, animalID } = req.params;
     const {
-        nome, dt_nascimento, sexo, disponivel, descricao,
+        nome, dt_nascimento, sexo, disponivel, descricao, // Remove animalID daqui
         castrado, vacinado, vermifugado, adotador,
-        idEspecie, idRaca, idCor, idPorte, animalID
+        idEspecie, idRaca, idCor, idPorte
     } = req.body;
 
     // Verifica se pelo menos um campo foi enviado para edição
@@ -277,39 +274,38 @@ app.patch('/editar_a/:key', async (req, res) => {
         castrado === undefined && vacinado === undefined && vermifugado === undefined &&
         adotador === undefined && idEspecie === undefined && idRaca === undefined &&
         idCor === undefined && idPorte === undefined
-    ) {
-        return res.status(400).json({ response: "Preencha pelo menos UM CAMPO" });
+    ) { // Validação para garantir que pelo menos um campo foi enviado
+        return res.status(400).json({ error: "Nenhum campo para atualizar foi fornecido." });
     }
-    if (animalID === undefined) {
-        return res.status(404).json({ response: "Preencha o ID do animal" });
-    }
+
     try {
         const retorno = await editar_A(
             key, nome, dt_nascimento, sexo, disponivel, descricao,
             castrado, vacinado, vermifugado, adotador,
             idEspecie, idRaca, idCor, idPorte, animalID
         );
-        if (retorno.affectedRows > 0) {
-            res.status(200).json({ response: "Informações alteradas com sucesso" });
+        if (retorno && retorno.affectedRows > 0) {
+            res.status(200).json({ message: "Informações do animal alteradas com sucesso." });
         } else {
-            res.status(400).json({ response: "Campo inválido ou ID informado inválido" });
+            res.status(400).json({ error: "Nenhuma alteração foi feita. Verifique os dados e permissões." });
         }
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao editar animal:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
 app.get('/listar_animais', async (req, res) => {
     try {
         const animais = await listarAnimaisDisponiveis();
-        if (animais.length > 0) {
-            res.status(200).json({ response: animais });
+        if (animais && animais.length > 0) {
+            res.status(200).json({ data: animais });
         } else {
-            res.status(404).json({ response: "Nenhum animal disponível para adoção no momento." })
+            res.status(200).json({ data: [] }); // Retorna array vazio se não houver animais
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ response: "Erro interno ao listar animais" });
+        res.status(500).json({ error: "Erro interno ao listar animais." });
     }
 })
 
@@ -322,18 +318,20 @@ app.get('/filtrar_animais', async (req, res) => {
             porte,
             disponivel: disponivel !== undefined ? disponivel === "true" : undefined
         });
-        res.status(200).json({ response: animais });
+        res.status(200).json({ data: animais });
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao filtrar animais:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
 app.get('/animal/:id', async (req, res) => {
     try {
         const animal = await detalharAnimal(req.params.id);
-        res.status(200).json({ animal });
+        res.status(200).json({ data: animal });
     } catch (error) {
-        res.status(404).json({ erro: error.message });
+        console.error("Erro ao detalhar animal:", error.message);
+        res.status(404).json({ error: error.message });
     }
 });
 
@@ -346,7 +344,7 @@ app.get('/imagem/:nome', (req, res) => {
 
     // Segurança básica: impede que acessem pastas superiores (ex: ../../)
     if (!nomeArquivo || nomeArquivo.includes('..')) {
-      return res.status(400).json({ erro: "Nome de arquivo inválido." });
+      return res.status(400).json({ error: "Nome de arquivo inválido." });
     }
 
     // Cria o caminho absoluto para o arquivo
@@ -357,11 +355,12 @@ app.get('/imagem/:nome', (req, res) => {
 
     res.sendFile(caminho, (err) => {
       if (err) {
-        res.status(404).send("Imagem não encontrada");
+        console.error(`Falha ao enviar arquivo: ${caminho}`, err);
+        res.status(404).json({ error: "Imagem não encontrada." });
       }
     });
   } catch (error) {
-    console.error("Erro interno na rota /imagem:", error);
+    console.error("Erro interno na rota /imagem/:nome:", error);
     res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });
@@ -370,14 +369,15 @@ app.post('/solicitar_adocao/:key', async (req, res) => {
     const { key } = req.params;
     const { id_animal } = req.body;
 
-    if (!id_animal) {
-        return res.status(400).json({ response: "ID do animal é obrigatório" });
+    if (!id_animal) { // Validação de entrada
+        return res.status(400).json({ error: "O ID do animal é obrigatório." });
     }
     try {
         const resultado = await solicitarAdocao(key, id_animal);
-        res.status(200).json({ response: "Adoção solicitada com sucesso" });
+        res.status(200).json({ message: "Adoção solicitada com sucesso." });
     } catch (error) {
-        res.status(400).json({ response: error.message });
+        console.error("Erro ao solicitar adoção:", error.message);
+        res.status(400).json({ error: error.message });
     }
 });
 
@@ -385,15 +385,16 @@ app.patch('/resolver_adocao/:key', async (req, res) => {
     const { key } = req.params;
     const { id_adocao, status } = req.body;
 
-    if (!id_adocao || !["aprovado", "recusado"].includes(status)) {
-        return res.status(400).json({ response: "Dados invalidos" });
+    if (!id_adocao || !status || !["aprovado", "recusado"].includes(status)) {
+        return res.status(400).json({ error: "Dados inválidos. Forneça id_adocao e um status válido ('aprovado' ou 'recusado')." });
     }
 
     try {
-        await resolverAdocao(key, id_adocao, status);
-        res.status(200).json({ response: `Solicitação ${status} com sucesso.` });
+        await resolverAdocao(key, id_adocao, status); // Lança erro em caso de falha
+        res.status(200).json({ message: `Solicitação de adoção foi ${status === 'aprovado' ? 'aprovada' : 'recusada'} com sucesso.` });
     } catch (error) {
-        res.status(403).json({ response: error.message });
+        console.error("Erro ao resolver adoção:", error.message);
+        res.status(403).json({ error: error.message }); // 403 pode ser apropriado para falha de permissão
     }
 })
 
