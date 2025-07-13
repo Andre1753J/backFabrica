@@ -65,11 +65,13 @@ app.post('/cadastrar_c', async (req, res) => {
         }
 
     } catch (error) {
-        if (error.message === 'Email inválido') {
-            res.status(400).json({ erro: 'E-mail inválido' });
+        console.error("Erro no cadastro (passo 1):", error.message);
+        // Trata erros específicos para dar um feedback melhor ao usuário
+        if (error.message === 'Email inválido' || error.message === "Este e-mail já está em uso.") {
+            res.status(400).json({ error: error.message });
         } else {
-            console.error(error);
-            res.status(500).json({ error: "Erro interno no servidor." });
+            // Erro genérico para outras falhas inesperadas
+            res.status(500).json({ error: "Erro interno no servidor. Por favor, tente novamente mais tarde." });
         }
     }
 });
