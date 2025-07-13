@@ -27,9 +27,28 @@ const check = databankCheck('./DataBank.ISO');
 
 const app = express();
 
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://26.113.18.78:3000', "https://petsworld.dev.vilhena.ifro.edu.br"],
-}));
+// Configuração de CORS mais robusta
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://26.113.18.78:3000',
+    'https://petsworld.dev.vilhena.ifro.edu.br'
+];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Permite requisições sem 'origin' (ex: Postman) ou se a origem estiver na lista de permitidas
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Acesso não permitido pela política de CORS'));
+        }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+};
+
+app.options('*', cors(corsOptions)); // Habilita pre-flight para todas as rotas
+app.use(cors(corsOptions)); // Aplica a configuração de CORS
 
 app.use(express.json());
 
