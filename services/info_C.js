@@ -20,7 +20,9 @@ export async function buscarCliente(key) {
     conexao.release();
 
     if (resultado.length === 0) {
-        throw new Error("Cliente não encontrado ou chave inválida");
+        const err = new Error("Cliente não encontrado ou chave inválida");
+        err.status = 404;
+        throw err;
     }
     const cliente = resultado[0];
     return {
