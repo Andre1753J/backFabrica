@@ -12,6 +12,7 @@ export async function listarAnimaisDisponiveis() {
         SELECT 
             a.id, a.nome, a.dt_nascimento, a.sexo, a.doador, a.descricao,
             a.castrado, a.vacinado, a.vermifugado, a.disponivel,
+            (SELECT i.nome_imagem FROM animalImg i WHERE i.animal = a.id ORDER BY i.id LIMIT 1) AS imagem,
             e.nome AS especie, r.nome AS raca, c.nome AS cor, p.nome AS porte
         FROM animal a
         JOIN Especie e ON a.idEspecie = e.idEspecie
@@ -36,6 +37,7 @@ export async function listarAnimaisDisponiveis() {
         vermifugado: !!animal.vermifugado,
         disponivel: !!animal.disponivel,
         especie: animal.especie,
+        imagem: animal.imagem,
         raca: animal.raca,
         cor: animal.cor,
         porte: animal.porte

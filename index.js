@@ -173,7 +173,7 @@ app.delete('/deletar_c/:key', async (req, res) => {
 app.post('/cadastrar_a/:key', async (req, res) => {
     const { key } = req.params;
     const {
-        nome, dt_nascimento, sexo, disponivel, descricao,
+        nome, dt_nascimento, sexo, descricao,
         castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
     } = req.body;
 
@@ -187,7 +187,7 @@ app.post('/cadastrar_a/:key', async (req, res) => {
     }
     try {
         const retorno = await cadastrar_A(
-            key, nome, dt_nascimento, sexo, disponivel, descricao,
+            key, nome, dt_nascimento, sexo, descricao,
             castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
         );
         if (retorno.affectedRows > 0) {

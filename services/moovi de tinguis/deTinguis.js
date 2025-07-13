@@ -18,10 +18,8 @@ const storage = multer.diskStorage({
     destination: path.join(__dirname, '../../as tinguis'),
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
-        const imageType = req.imageType;
-        const userId = req.userId;
         const imageID = req.imageID;
-        const novoNome = `imgType${imageType}_ID${userId}_subID${imageID}${ext}`;
+        const novoNome = `${imageID}${ext}`;
         cb(null, novoNome);
     }
 });

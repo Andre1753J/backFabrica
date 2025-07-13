@@ -7,7 +7,7 @@ async function executaQuery(conexao, query, params) {
 }
 
 export async function cadastrar_A(
-    key, nome, data_nascimento, sexo, disponivel, descricao,
+    key, nome, data_nascimento, sexo, descricao,
     castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte) {
     const conexao = await pool.getConnection();
     const [id, , senha] = quebrarKey(key);
@@ -18,13 +18,13 @@ export async function cadastrar_A(
             castrado, vacinado, vermifugado,
             doador, adotador, idEspecie, idRaca, idCor, idPorte
         )
-        SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?, ?, ?
+        SELECT ?, ?, ?, 1, ?, ?, ?, ?, ?, null, ?, ?, ?, ?
         FROM cliente
         WHERE id = ? AND senha = ?
     `;
     // Ordem dos parâmetros conforme o insert acima
     const params = [
-        nome, data_nascimento, sexo, disponivel, descricao, castrado, vacinado, vermifugado,
+        nome, data_nascimento, sexo, descricao, castrado, vacinado, vermifugado,
         id, // doador
         idEspecie, idRaca, idCor, idPorte,
         id, senha // para validação do cliente
