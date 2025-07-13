@@ -1,4 +1,6 @@
 import pool from "./connection.js";
+import bcrypt from 'bcrypt';
+import { gerarKey } from "./gerar_key.js";
 
 async function executaQuery(conexao, query, params) {
     // Para INSERT, o resultado não é um array de linhas, mas um objeto de status.
@@ -23,11 +25,14 @@ export async function cadastrar(email, senha) {
             throw new Error("Este e-mail já está em uso.");
         }
 
-        // 2. Inserir o novo cliente
-        const insertQuery = 'INSERT INTO cliente (email, senha) VALUES (?, ?)';
-        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senha]);
+        // 2. Hash da senha
+        const senhaHash = await bcrypt.hash(senha, 10); // 10 é o salt rounds
 
-        // 3. Obter o ID do usuário recém-criado
+        // 3. Inserir o novo cliente com a senha hasheada
+        const insertQuery = 'INSERT INTO cliente (email, senha) VALUES (?, ?)';
+        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senhaHash]);
+
+        // 4. Obter o ID do usuário recém-criado
         // CORREÇÃO: O ID de uma nova inserção vem de `insertId`.
         const novoId = resultadoInsert.insertId;
 
@@ -35,8 +40,8 @@ export async function cadastrar(email, senha) {
             throw new Error("Falha ao criar o usuário no banco de dados.");
         }
 
-        // 4. Criar a chave de autenticação com o ID correto
-        const key = `${novoId}=-=${email}=-=${senha}`;
+        // 5. Criar a chave de autenticação com o ID correto e a senha hasheada
+        const key = gerarKey(novoId, email, senhaHash);
 
         return [resultadoInsert, key];
 
@@ -47,13 +52,22 @@ export async function cadastrar(email, senha) {
 
 export async function login(email, senha) {
     const conexao = await pool.getConnection();
-    const query = 'SELECT id, email, senha FROM cliente WHERE email = ? AND senha = ?';
-    const resultado = await executaQuery(conexao, query, [email, senha]);
-    conexao.release();
+    try {
+        const query = 'SELECT id, email, senha FROM cliente WHERE email = ?';
+        const resultado = await executaQuery(conexao, query, [email]);
 
-    if (resultado.length === 0) {
-        throw new Error("E-mail ou senha incorretos.");
+        if (resultado.length === 0) {
+            throw new Error("E-mail ou senha incorretos.");
+        }
+
+        const cliente = resultado[0];
+        const senhaCorreta = await bcrypt.compare(senha, cliente.senha);
+
+        if (!senhaCorreta) {
+            throw new Error("E-mail ou senha incorretos.");
+        }
+        return gerarKey(cliente.id, cliente.email, cliente.senha);
+    } finally {
+        conexao.release();
     }
-    const cliente = resultado[0];
-    return `${cliente.id}=-=${cliente.email}=-=${cliente.senha}`;
 }

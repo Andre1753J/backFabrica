@@ -1,5 +1,7 @@
 import pool from "./connection.js";
 import { quebrarKey } from "./quebraKey.js";
+import { gerarKey } from "./gerar_key.js";
+import bcrypt from 'bcrypt';
 
 async function executaQuery(conexao, query, params) {
     const resposta_query = await conexao.execute(query, params);
@@ -13,7 +15,7 @@ export async function cadastropt2(
     telefone, telefone2
 ) {
     const conexao = await pool.getConnection();
-    const [id, email, senha] = key.split("=-=");
+    const [id, email, senha] = quebrarKey(key);
 
     const campos = {
         nome, cpf, rg, dt_nascimento, sexo,
@@ -45,48 +47,58 @@ export async function cadastropt2(
 // Função para editar campos selecionados do cliente
 export async function editar_c(key, updates) {
     const conexao = await pool.getConnection();
-    const [id, , senha] = quebrarKey(key);
-
     try {
-        // 1. Validar a senha atual
-        if (senha !== updates.senhaAtual) {
+        const [id] = quebrarKey(key);
+
+        // 1. Busca o usuário atual no banco para validar a senha
+        const [currentUser] = await executaQuery(conexao, 'SELECT * FROM cliente WHERE id = ?', [id]);
+        if (!currentUser) {
+            throw new Error("Usuário não encontrado.");
+        }
+
+        // 2. Valida a senha atual fornecida pelo usuário usando bcrypt
+        const senhaCorreta = await bcrypt.compare(updates.senhaAtual, currentUser.senha);
+        if (!senhaCorreta) {
             throw new Error("Senha atual incorreta.");
         }
 
-        // 2. Preparar os campos para atualização, ignorando a senha
+        // 3. Prepara os campos que serão realmente atualizados
         const camposParaAtualizar = {};
-        if (updates.nome !== undefined) camposParaAtualizar.nome = updates.nome;
-        if (updates.email !== undefined) camposParaAtualizar.email = updates.email;
-        if (updates.telefone !== undefined) camposParaAtualizar.telefone = updates.telefone;
-
-        // Se não houver campos para atualizar (além da senha), não faz nada.
-        if (Object.keys(camposParaAtualizar).length === 0) {
-            return { affectedRows: 1, message: "Nenhum dado para atualizar, mas senha confirmada.", newKey: key };
+        if (updates.nome && updates.nome !== currentUser.nome) {
+            camposParaAtualizar.nome = updates.nome;
+        }
+        if (updates.email && updates.email !== currentUser.email) {
+            camposParaAtualizar.email = updates.email;
+        }
+        if (updates.telefone && updates.telefone !== currentUser.telefone) {
+            camposParaAtualizar.telefone = updates.telefone;
         }
 
-        // 3. Construir e executar a query de atualização
+        // Se nada mudou, não faz nada no banco
+        if (Object.keys(camposParaAtualizar).length === 0) {
+            return { affectedRows: 0, newKey: null };
+        }
+
+        // 4. Monta e executa a query de atualização
         const setClause = Object.keys(camposParaAtualizar)
             .map((campo) => `${campo} = ?`)
             .join(', ');
+        const params = [...Object.values(camposParaAtualizar), id];
+        const updateQuery = `UPDATE cliente SET ${setClause} WHERE id = ?`;
+        
+        const resultadoUpdate = await executaQuery(conexao, updateQuery, params);
 
-        const query = `UPDATE cliente SET ${setClause} WHERE id = ? AND senha = ?`;
-        const valores = [...Object.values(camposParaAtualizar), id, senha];
-
-        const retorno = await executaQuery(conexao, query, valores);
-
-        if (retorno.affectedRows === 0) {
-            throw new Error("Não foi possível atualizar o cliente. Chave inválida ou dados incorretos.");
+        // 5. Se a atualização foi bem-sucedida, verifica se precisa gerar nova chave
+        if (resultadoUpdate.affectedRows > 0) {
+            let newKey = null;
+            // Gera nova chave SOMENTE se o e-mail foi alterado
+            if (camposParaAtualizar.email) {
+                newKey = gerarKey(id, camposParaAtualizar.email, currentUser.senha);
+            }
+            return { ...resultadoUpdate, newKey };
         }
 
-        // 4. Buscar os dados atualizados para gerar a nova chave
-        const [clienteAtualizado] = await executaQuery(conexao, 'SELECT email, senha FROM cliente WHERE id = ?', [id]);
-        if (!clienteAtualizado) {
-            throw new Error("Erro ao buscar dados atualizados do cliente.");
-        }
-
-        // 5. Gerar e retornar a nova chave
-        const newKey = `${id}=-=${clienteAtualizado.email}=-=${clienteAtualizado.senha}`;
-        return { affectedRows: retorno.affectedRows, newKey };
+        return resultadoUpdate;
     } finally {
         conexao.release();
     }
