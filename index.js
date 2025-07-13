@@ -439,9 +439,13 @@ app.patch('/resolver_adocao/:key', async (req, res) => {
     }
 })
 
-app.use('/', upload);
+// app.use('/', upload); // <--- DESABILITADO TEMPORARIAMENTE
+
+// O erro "Missing parameter name" indica que há uma rota malformada
+// dentro do arquivo './services/moovi de tinguis/deTinguis.js'.
+// Procure por rotas com erro de sintaxe como "router.post('/:')" ou "router.get('/: nomeComEspaco')".
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor inciado ass ' + data + "EM localhost:9000");
+    console.log('Servidor iniciado às ' + data + " em localhost:9000");
 })
