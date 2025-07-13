@@ -29,7 +29,7 @@ export async function listarAnimaisDisponiveis() {
         id: animal.id,
         nome: animal.nome,
         dt_nascimento: animal.dt_nascimento,
-        sexo: animal.sexo,
+        sexo: animal.sexo === 'M' ? 'macho' : 'femea',
         doador: animal.doador,
         descricao: animal.descricao,
         castrado: !!animal.castrado,

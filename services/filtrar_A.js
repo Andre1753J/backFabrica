@@ -46,7 +46,7 @@ export async function filtrarAnimaisSimples({ especie, sexo, porte, disponivel }
     return animais.map(animal => ({
         id: animal.id,
         nome: animal.nome,
-        sexo: animal.sexo,
+        sexo: animal.sexo === 'M' ? 'macho' : 'femea',
         imagem: animal.imagem,
         especie: animal.especie,
         porte: animal.porte,
