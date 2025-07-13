@@ -188,12 +188,15 @@ app.post('/cadastrar_a/:key', async (req, res) => {
             castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte
         );
         if (retorno && retorno.affectedRows > 0) {
+            if (!retorno.insertId) {
+                throw new Error("Falha ao obter o ID do novo animal após o cadastro.");
+            }
             res.status(201).json({
                 message: "Cadastro do animal realizado com sucesso.",
-                data: { id: retorno.insertId }
+                data: { animalId: retorno.insertId }
             });
         } else {
-            res.status(400).json({ error: "Informação inválida ou animal já cadastrado." });
+            res.status(400).json({ error: "Não foi possível cadastrar o animal. Verifique os dados enviados." });
         }
     } catch (error) {
         console.error("Erro ao cadastrar animal:", error.message);
