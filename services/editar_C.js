@@ -1,6 +1,6 @@
 import pool from "./connection.js";
 import { quebrarKey } from "./quebraKey.js";
-import { gerarKey } from "./gerar_key.js";
+import { gerarKey } from "./gerarKey.js";
 import bcrypt from 'bcrypt';
 
 async function executaQuery(conexao, query, params) {

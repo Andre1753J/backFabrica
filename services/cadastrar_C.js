@@ -1,6 +1,6 @@
 import pool from "./connection.js";
 import bcrypt from 'bcrypt';
-import { gerarKey } from "./gerar_key.js";
+import { gerarKey } from "./gerarKey.js";
 
 async function executaQuery(conexao, query, params) {
     // Para INSERT, o resultado não é um array de linhas, mas um objeto de status.
