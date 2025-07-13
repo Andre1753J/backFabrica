@@ -27,28 +27,9 @@ const check = databankCheck('./DataBank.ISO');
 
 const app = express();
 
-// Configuração de CORS mais robusta
-const allowedOrigins = [
-    'http://localhost:3000',
-    'http://26.113.18.78:3000',
-    'https://petsworld.dev.vilhena.ifro.edu.br'
-];
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Permite requisições sem 'origin' (ex: Postman) ou se a origem estiver na lista de permitidas
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Acesso não permitido pela política de CORS'));
-        }
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-};
-
-app.options('*', cors(corsOptions)); // Habilita pre-flight para todas as rotas
-app.use(cors(corsOptions)); // Aplica a configuração de CORS
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://26.113.18.78:3000', "https://petsworld.dev.vilhena.ifro.edu.br"],
+}));
 
 app.use(express.json());
 
@@ -439,13 +420,9 @@ app.patch('/resolver_adocao/:key', async (req, res) => {
     }
 })
 
-// app.use('/', upload); // <--- DESABILITADO TEMPORARIAMENTE
-
-// O erro "Missing parameter name" indica que há uma rota malformada
-// dentro do arquivo './services/moovi de tinguis/deTinguis.js'.
-// Procure por rotas com erro de sintaxe como "router.post('/:')" ou "router.get('/: nomeComEspaco')".
+app.use('/', upload);
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor iniciado às ' + data + " em localhost:9000");
+    console.log('Servidor inciado ass ' + data + "EM localhost:9000");
 })
