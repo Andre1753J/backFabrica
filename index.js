@@ -30,6 +30,10 @@ const app = express();
 app.use(cors({
     origin: ['http://localhost:3000', 'http://26.113.18.78:3000', "https://petsworld.dev.vilhena.ifro.edu.br"],
 }));
+
+// Habilita o pre-flight (requisições OPTIONS) para todas as rotas
+app.options('*', cors());
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
