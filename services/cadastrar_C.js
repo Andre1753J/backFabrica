@@ -1,5 +1,4 @@
 import pool from "./connection.js";
-import bcrypt from 'bcrypt';
 import { gerarKey } from "./gerar_key.js";
 
 async function executaQuery(conexao, query, params) {
@@ -25,23 +24,19 @@ export async function cadastrar(email, senha) {
             throw new Error("Este e-mail já está em uso.");
         }
 
-        // 2. Hash da senha
-        const senhaHash = await bcrypt.hash(senha, 10); // 10 é o salt rounds
-
-        // 3. Inserir o novo cliente com a senha hasheada
+        // 2. Inserir o novo cliente com a senha em texto plano (sem hash)
         const insertQuery = 'INSERT INTO cliente (email, senha) VALUES (?, ?)';
-        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senhaHash]);
+        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senha]);
 
-        // 4. Obter o ID do usuário recém-criado
-        // CORREÇÃO: O ID de uma nova inserção vem de `insertId`.
+        // 3. Obter o ID do usuário recém-criado
         const novoId = resultadoInsert.insertId;
 
         if (!novoId || novoId === 0) {
             throw new Error("Falha ao criar o usuário no banco de dados.");
         }
 
-        // 5. Criar a chave de autenticação com o ID correto e a senha hasheada
-        const key = gerarKey(novoId, email, senhaHash);
+        // 4. Criar a chave de autenticação com a senha em texto plano
+        const key = gerarKey(novoId, email, senha);
 
         return [resultadoInsert, key];
 
@@ -61,7 +56,9 @@ export async function login(email, senha) {
         }
 
         const cliente = resultado[0];
-        const senhaCorreta = await bcrypt.compare(senha, cliente.senha);
+
+        // Compara a senha enviada com a senha em texto plano do banco de dados
+        const senhaCorreta = senha === cliente.senha;
 
         if (!senhaCorreta) {
             throw new Error("E-mail ou senha incorretos.");

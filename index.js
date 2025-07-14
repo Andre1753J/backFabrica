@@ -80,11 +80,16 @@ app.post('/cadastrar_c', async (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { email, senha } = req.body;
+    // Validação básica para garantir que os campos não estão vazios
+    if (!email || !senha) {
+        return res.status(400).json({ error: "E-mail e senha são obrigatórios." });
+    }
     try {
         const retorno = await login(email, senha);
         res.status(200).json({ data: { key: retorno } });
     } catch (error) {
         console.error("Erro no login:", error.message);
+        // A mensagem de erro do service é segura para ser enviada ao cliente.
         res.status(401).json({ error: error.message });
     }
 })
