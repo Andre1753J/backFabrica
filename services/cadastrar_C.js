@@ -63,7 +63,8 @@ export async function login(email, senha) {
         if (!senhaCorreta) {
             throw new Error("E-mail ou senha incorretos.");
         }
-        return gerarKey(cliente.id, cliente.email, cliente.senha);
+        const key = gerarKey(cliente.id, cliente.email, cliente.senha);
+        return { key };
     } finally {
         conexao.release();
     }
