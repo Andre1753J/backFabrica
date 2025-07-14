@@ -8,12 +8,17 @@ export function quebrarKey(key) {
     const decodedData = Buffer.from(key, 'base64').toString('ascii');
 
     // Separa os dados pelo delimitador ":"
-    const [id, email, senha] = decodedData.split(':');
+    const parts = decodedData.split(':');
 
-    // Valida se todos os componentes da chave estão presentes
-    if (!id || !email || !senha) {
+    // Valida se a chave tem o formato mínimo (id:email:senha)
+    if (parts.length < 3) {
         throw new Error("Chave de autenticação inválida ou malformada.");
     }
+
+    const id = parts[0];
+    const email = parts[1];
+    // A senha é tudo o que vem depois do segundo ':', para o caso de a senha conter ':'
+    const senha = parts.slice(2).join(':');
 
     return [id, email, senha];
 }
