@@ -14,6 +14,9 @@ export async function deletarCliente(key) {
             throw new Error("Usuário não encontrado ou chave inválida.");
         }
 
+        // Exclui primeiro as solicitações de adoção feitas pelo cliente para evitar erros de chave estrangeira
+        await conn.query('DELETE FROM adocao WHERE id_cliente = ?', [id]);
+
         // Exclui primeiro os animais associados ao doador
         await conn.query('DELETE FROM animal WHERE doador = ?', [id]);
 
