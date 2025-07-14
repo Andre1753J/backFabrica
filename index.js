@@ -2,7 +2,6 @@ import express from "express";
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import fs from 'fs'; // Importa o módulo 'fs' para manipulação de arquivos
 import { cadastrar, login } from './services/cadastrar_C.js'; 
 import { cadastropt2, editar_c, mudar_senha } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
@@ -33,6 +32,11 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Servir imagens estáticas da pasta 'as tinguis' de forma mais robusta e eficiente.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/imagem', express.static(path.join(__dirname, 'as tinguis')));
 
 app.get('/', (req, res) => {
     res.send('API funcionando');
@@ -363,38 +367,6 @@ app.get('/animal/:id', async (req, res) => {
         console.error("Erro ao detalhar animal:", error.message);
         res.status(404).json({ error: error.message });
     }
-});
-
-app.get('/imagem/:nome', (req, res) => {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const nomeArquivo = req.params.nome;
-
-    // Segurança básica para evitar acesso a diretórios superiores
-    if (!nomeArquivo || nomeArquivo.includes('..')) {
-        return res.status(400).send('Nome de arquivo inválido.');
-    }
-
-    const caminho = path.join(__dirname, 'as tinguis', nomeArquivo);
-
-    // Log para depuração: mostra no console o caminho exato que está sendo procurado
-    console.log(`[IMAGEM] Tentando servir o arquivo: ${caminho}`);
-
-    // Verifica se o arquivo existe antes de tentar enviar
-    fs.access(caminho, fs.constants.F_OK, (err) => {
-        if (err) {
-            console.error(`[IMAGEM] Arquivo não encontrado no caminho: ${caminho}`);
-            return res.status(404).send('Imagem não encontrada.');
-        }
-
-        // Se o arquivo existe, envia para o cliente
-        res.sendFile(caminho, (err) => {
-            if (err) {
-                // Este erro ocorre se algo der errado durante o envio do arquivo
-                console.error(`[IMAGEM] Erro ao enviar o arquivo: ${caminho}`, err);
-            }
-        });
-    });
 });
 
 app.post('/solicitar_adocao/:key', async (req, res) => {
