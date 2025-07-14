@@ -17,6 +17,7 @@ import { removerAnimal } from "./services/remover_A.js";
 import { minhasAdocoes } from "./services/adocoes_C.js";
 import { solicitacoesRecebidas } from "./services/solicitacoes_recebidas.js";
 import { cancelarAdocao } from "./services/cancelar_adocao.js";
+import { minhasSolicitacoes } from './services/solicitacoes_feitas.js';
 import { buscarCliente } from './services/info_C.js'; 
 import { detalharAnimal } from './services/info_A.js';
 import { filtrarAnimaisSimples } from './services/filtrar_A.js';
@@ -257,6 +258,17 @@ app.get('/minhas_adocoes/:key', async (req, res) => {
         res.status(200).json({ data: adotados });
     } catch (error) {
         console.error("Erro ao listar minhas adoções:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/minhas_solicitacoes/:key', async (req, res) => {
+    const { key } = req.params;
+    try {
+        const solicitacoes = await minhasSolicitacoes(key);
+        res.status(200).json({ data: solicitacoes });
+    } catch (error) {
+        console.error("Erro ao buscar minhas solicitações:", error.message);
         res.status(400).json({ error: error.message });
     }
 });
