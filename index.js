@@ -33,6 +33,11 @@ app.use(cors({
 
 app.use(express.json());
 
+// Servir imagens estáticas da pasta 'as tinguis'
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/imagem', express.static(path.join(__dirname, 'as tinguis')));
+
 app.get('/', (req, res) => {
     res.send('API funcionando');
 });
@@ -362,36 +367,6 @@ app.get('/animal/:id', async (req, res) => {
         console.error("Erro ao detalhar animal:", error.message);
         res.status(404).json({ error: error.message });
     }
-});
-
-app.get('/imagem/:nome', (req, res) => {
-  try {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-
-    const nomeArquivo = req.params.nome;
-
-    // Segurança básica: impede que acessem pastas superiores (ex: ../../)
-    if (!nomeArquivo || nomeArquivo.includes('..')) {
-      return res.status(400).json({ error: "Nome de arquivo inválido." });
-    }
-
-    // Cria o caminho absoluto para o arquivo
-    const caminho = path.join(__dirname, 'as tinguis', nomeArquivo);
-
-    // Log para depuração: mostra no console o caminho exato que está sendo procurado
-    console.log(`Tentando servir a imagem: ${caminho}`);
-
-    res.sendFile(caminho, (err) => {
-      if (err) {
-        console.error(`Falha ao enviar arquivo: ${caminho}`, err);
-        res.status(404).json({ error: "Imagem não encontrada." });
-      }
-    });
-  } catch (error) {
-    console.error("Erro interno na rota /imagem/:nome:", error);
-    res.status(500).json({ erro: "Erro interno no servidor" });
-  }
 });
 
 app.post('/solicitar_adocao/:key', async (req, res) => {
