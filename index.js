@@ -173,18 +173,20 @@ app.patch('/cadastrar_c_pt2/:key', async (req, res) => {
     }
 })
 
-app.delete('/deletar_c/:key', async (req, res) => {
+app.delete('/deletar_cliente/:key', async (req, res) => {
     try {
         const resultado = await deletarCliente(req.params.key);
 
-        if (resultado.affectedRows === 0) {
-            return res.status(404).json({ error: "Cliente não encontrado ou já deletado." });
+        if (resultado.affectedRows > 0) {
+            res.status(200).json({ message: "Conta excluída com sucesso." });
+        } else {
+            // Este caso é um fallback, caso o serviço não lance um erro por algum motivo.
+            res.status(404).json({ error: "Cliente não encontrado ou nenhuma ação foi realizada." });
         }
-
-        res.status(200).json({ message: "Cliente deletado com sucesso" });
     } catch (error) {
         console.error("Erro ao deletar cliente:", error.message);
-        res.status(400).json({ error: error.message });
+        const statusCode = error.message === "Usuário não encontrado ou chave inválida." ? 404 : 500;
+        res.status(statusCode).json({ error: error.message || 'Erro interno do servidor.' });
     }
 });
 
