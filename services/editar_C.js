@@ -14,7 +14,8 @@ export async function cadastropt2(
     telefone, telefone2
 ) {
     const conexao = await pool.getConnection();
-    const [id, email, senha] = quebrarKey(key);
+    // A chave deve ser usada apenas para IDENTIFICAR o usuário pelo seu ID.
+    const [id] = quebrarKey(key);
 
     const campos = {
         nome, cpf, rg, dt_nascimento, sexo,
@@ -29,9 +30,10 @@ export async function cadastropt2(
         .map(campo => `${campo} = ?`)
         .join(', ');
 
-    const valores = [...Object.values(campos), id, email, senha];
+    // Os valores para a query são os campos a serem atualizados e o ID para a cláusula WHERE.
+    const valores = [...Object.values(campos), id];
 
-    const query = `UPDATE cliente SET ${setClause} WHERE id = ? AND email = ? AND senha = ?`;
+    const query = `UPDATE cliente SET ${setClause} WHERE id = ?`;
 
     const retorno = await executaQuery(conexao, query, valores);
 
