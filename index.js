@@ -100,7 +100,7 @@ app.post('/login', async (req, res) => {
     }
     try {
         const retorno = await login(email, senha);
-        res.status(200).json({ data: { key: retorno } });
+        res.status(200).json({ data: retorno });
     } catch (error) {
         console.error("Erro no login:", error.message);
         // A mensagem de erro do service é segura para ser enviada ao cliente.
