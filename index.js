@@ -33,9 +33,17 @@ app.use(cors({
 
 app.use(express.json());
 
-// Servir imagens estáticas da pasta 'as tinguis' de forma mais robusta e eficiente.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Middleware de log para depurar o acesso às imagens
+app.use('/imagem', (req, res, next) => {
+    const fullPath = path.join(__dirname, 'as tinguis', req.path);
+    console.log(`--- [LOG DE IMAGEM] ---`);
+    console.log(`URL da Requisição: ${req.originalUrl}`);
+    console.log(`Caminho do arquivo no servidor: ${fullPath}`);
+    next();
+});
 app.use('/imagem', express.static(path.join(__dirname, 'as tinguis')));
 
 app.get('/', (req, res) => {
