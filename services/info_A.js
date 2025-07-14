@@ -14,12 +14,14 @@ export async function detalharAnimal(animalID) {
         SELECT 
             a.id, a.nome, a.dt_nascimento, a.sexo, a.doador, a.adotador, a.descricao,
             a.castrado, a.vacinado, a.vermifugado, a.disponivel,
-            e.nome AS especie, r.nome AS raca, c.nome AS cor, p.nome AS porte
+            e.nome AS especie, r.nome AS raca, c.nome AS cor, p.nome AS porte,
+            d.nome AS nome_doador
         FROM animal a
         LEFT JOIN Especie e ON a.idEspecie = e.idEspecie
         LEFT JOIN Raca r ON a.idRaca = r.idRaca
         LEFT JOIN Cor c ON a.idCor = c.idCor
         LEFT JOIN Porte p ON a.idPorte = p.idPorte
+        LEFT JOIN cliente d ON a.doador = d.id
         WHERE a.id = ?
         LIMIT 1
     `;
@@ -53,6 +55,7 @@ export async function detalharAnimal(animalID) {
         raca: animal.raca,
         cor: animal.cor,
         porte: animal.porte,
+        nome_doador: animal.nome_doador,
         imagens: imagensResult.map(img => img.nome_imagem)
     };
 }
