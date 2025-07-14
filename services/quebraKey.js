@@ -5,7 +5,7 @@ export function quebrarKey(key) {
     }
 
     // Decodifica a string Base64 para o formato original "id:email:senhaHash"
-    const decodedData = Buffer.from(key, 'base64').toString('ascii');
+    const decodedData = Buffer.from(key, 'base64').toString('utf8');
 
     // Separa os dados pelo delimitador ":"
     const parts = decodedData.split(':');
