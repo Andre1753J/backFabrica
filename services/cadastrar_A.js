@@ -12,11 +12,11 @@ export async function cadastrar_A(
     castrado, vacinado, vermifugado, idEspecie, idRaca, idCor, idPorte) {
     const conexao = await pool.getConnection();
     try {
-        const [id, , senha] = quebrarKey(key);
+        const [id] = quebrarKey(key); // A chave é a prova de autenticação, não precisamos da senha.
 
         // 1. Verificar se o cliente (doador) existe e a chave é válida
-        const clienteQuery = 'SELECT id FROM cliente WHERE id = ? AND senha = ?';
-        const clienteResult = await executaQuery(conexao, clienteQuery, [id, senha]);
+        const clienteQuery = 'SELECT id FROM cliente WHERE id = ?';
+        const clienteResult = await executaQuery(conexao, clienteQuery, [id]);
 
         if (!clienteResult || clienteResult.length === 0) {
             throw new Error("Usuário doador não encontrado ou chave inválida.");

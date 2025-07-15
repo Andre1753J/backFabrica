@@ -1,6 +1,7 @@
 import pool from "./connection.js";
 import { quebrarKey } from "./quebraKey.js";
 import { gerarKey } from "./gerar_key.js";
+import bcrypt from 'bcrypt';
 
 async function executaQuery(conexao, query, params) {
     const resposta_query = await conexao.execute(query, params);
@@ -57,8 +58,8 @@ export async function editar_c(key, updates) {
             throw new Error("Usuário não encontrado.");
         }
 
-        // 2. Valida a senha atual fornecida pelo usuário (comparação de texto plano)
-        const senhaCorreta = updates.senhaAtual === currentUser.senha;
+        // 2. Valida a senha atual fornecida pelo usuário (comparação com hash)
+        const senhaCorreta = await bcrypt.compare(updates.senhaAtual, currentUser.senha);
         if (!senhaCorreta) {
             throw new Error("Senha atual incorreta.");
         }
@@ -127,23 +128,26 @@ export async function mudar_senha(key, { senhaAtual, novaSenha, confirmarNovaSen
             throw new Error("Usuário não encontrado.");
         }
 
-        // 3. Valida a senha atual fornecida pelo usuário (comparação de texto plano)
-        const senhaAtualCorreta = senhaAtual === currentUser.senha;
+        // 3. Valida a senha atual fornecida pelo usuário (comparação com hash)
+        const senhaAtualCorreta = await bcrypt.compare(senhaAtual, currentUser.senha);
         if (!senhaAtualCorreta) {
             throw new Error("Senha atual incorreta.");
         }
 
         // 4. Verifica se a nova senha é igual à antiga
-        const mesmaSenha = novaSenha === currentUser.senha;
+        const mesmaSenha = await bcrypt.compare(novaSenha, currentUser.senha);
         if (mesmaSenha) {
             throw new Error("A nova senha não pode ser igual à senha atual.");
         }
 
-        // 5. Atualiza a senha em texto plano no banco
-        await executaQuery(conexao, 'UPDATE cliente SET senha = ? WHERE id = ?', [novaSenha, id]);
+        // 5. Criptografa a nova senha antes de salvar
+        const saltRounds = 10;
+        const novaSenhaHasheada = await bcrypt.hash(novaSenha, saltRounds);
+        await executaQuery(conexao, 'UPDATE cliente SET senha = ? WHERE id = ?', [novaSenhaHasheada, id]);
 
-        // 6. Gerar e retornar a nova chave de autenticação com a nova senha em texto plano
-        const newKey = gerarKey(id, email, novaSenha);
+        // 6. Gerar e retornar a nova chave de autenticação.
+        // ATENÇÃO: A chave não deveria conter a senha. Idealmente, use JWT.
+        const newKey = gerarKey(id, email, novaSenhaHasheada);
         return { message: "Senha alterada com sucesso.", newKey };
 
     } finally {
