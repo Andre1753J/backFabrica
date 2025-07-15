@@ -1,5 +1,6 @@
 import pool from "./connection.js";
 import { gerarKey } from "./gerar_key.js";
+import bcrypt from 'bcrypt';
 
 async function executaQuery(conexao, query, params) {
     // Para INSERT, o resultado não é um array de linhas, mas um objeto de status.
@@ -24,18 +25,22 @@ export async function cadastrar(email, senha) {
             throw new Error("Este e-mail já está em uso.");
         }
 
-        // 2. Inserir o novo cliente com a senha em texto plano (sem hash)
-        const insertQuery = 'INSERT INTO cliente (email, senha) VALUES (?, ?)';
-        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senha]);
+        // 2. Criptografar a senha antes de salvar
+        const saltRounds = 10; // Fator de custo para o hash
+        const senhaHasheada = await bcrypt.hash(senha, saltRounds);
 
-        // 3. Obter o ID do usuário recém-criado
+        // 3. Inserir o novo cliente com a senha criptografada
+        const insertQuery = 'INSERT INTO cliente (email, senha) VALUES (?, ?)';
+        const resultadoInsert = await executaQuery(conexao, insertQuery, [email, senhaHasheada]);
+
+        // 4. Obter o ID do usuário recém-criado
         const novoId = resultadoInsert.insertId;
 
         if (!novoId || novoId === 0) {
             throw new Error("Falha ao criar o usuário no banco de dados.");
         }
 
-        // 4. Criar a chave de autenticação com a senha em texto plano
+        // 5. Criar a chave de autenticação (recomendo não incluir a senha aqui)
         const key = gerarKey(novoId, email, senha);
 
         return [resultadoInsert, key];
@@ -57,13 +62,13 @@ export async function login(email, senha) {
 
         const cliente = resultado[0];
 
-        // Compara a senha enviada com a senha em texto plano do banco de dados
-        const senhaCorreta = senha === cliente.senha;
+        // Compara a senha enviada com a senha criptografada do banco de dados
+        const senhaCorreta = await bcrypt.compare(senha, cliente.senha);
 
         if (!senhaCorreta) {
             throw new Error("E-mail ou senha incorretos.");
         }
-        const key = gerarKey(cliente.id, cliente.email, cliente.senha);
+        const key = gerarKey(cliente.id, cliente.email, cliente.senha); // A senha aqui ainda é a hasheada
         return { key };
     } finally {
         conexao.release();

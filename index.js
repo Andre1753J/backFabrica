@@ -62,6 +62,14 @@ if (!fs.existsSync(caminhoDaPastaDeImagens)) {
     console.log(`---------------------------------\n`);
 }
 
+// NOVO: Middleware de log para TODAS as requisições /imagem/*
+// Isso vai rodar ANTES de tentar servir o arquivo, para garantir que a requisição está chegando aqui.
+app.use('/imagem', (req, res, next) => {
+    console.log(`\n--- [DEPURAÇÃO DE IMAGEM] ---`);
+    console.log(`Recebida requisição para: ${req.originalUrl}`);
+    next(); // Continua para o próximo middleware (express.static)
+});
+
 // 4. Middleware para servir as imagens estaticamente.
 app.use('/imagem', express.static(caminhoDaPastaDeImagens));
 
