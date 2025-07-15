@@ -2,6 +2,7 @@ import express from "express";
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 import { cadastrar, login } from './services/cadastrar_C.js'; 
 import { cadastropt2, editar_c, mudar_senha } from "./services/editar_C.js";
 import { cadastrar_A } from "./services/cadastrar_A.js";
@@ -37,15 +38,42 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware de log para depurar o acesso às imagens
+// --- INÍCIO DA SEÇÃO DE IMAGENS (REVISADA PARA MELHOR DEPURAÇÃO) ---
+
+// 1. Defina o nome da pasta onde as imagens estão salvas.
+//    !!!! IMPORTANTE !!!!
+//    Verifique se o nome da pasta no seu projeto é EXATAMENTE 'as tinguis'.
+//    Se for 'uploads' ou outro nome, mude a string abaixo.
+const NOME_DA_PASTA_DE_IMAGENS = 'as tinguis';
+
+// 2. Crie o caminho absoluto para a pasta de imagens.
+const caminhoDaPastaDeImagens = path.join(__dirname, NOME_DA_PASTA_DE_IMAGENS);
+
+// 3. (Recomendado para depuração)
+//    Verifica se a pasta de imagens realmente existe quando o servidor inicia.
+if (!fs.existsSync(caminhoDaPastaDeImagens)) {
+    console.error(`\n--- [ERRO DE CONFIGURAÇÃO] ---`);
+    console.error(`A pasta de imagens NÃO FOI ENCONTRADA em: ${caminhoDaPastaDeImagens}`);
+    console.error(`Verifique se a pasta "${NOME_DA_PASTA_DE_IMAGENS}" existe na raiz do seu projeto backend.`);
+    console.error(`---------------------------------\n`);
+} else {
+    console.log(`\n--- [CONFIGURAÇÃO DE IMAGEM] ---`);
+    console.log(`Servindo imagens da pasta: ${caminhoDaPastaDeImagens}`);
+    console.log(`---------------------------------\n`);
+}
+
+// 4. Middleware para servir as imagens estaticamente.
+app.use('/imagem', express.static(caminhoDaPastaDeImagens));
+
+// 5. Middleware de log para requisições que NÃO encontraram uma imagem.
+//    Este trecho só será executado se o `express.static` acima não encontrar o arquivo.
 app.use('/imagem', (req, res, next) => {
-    const fullPath = path.join(__dirname, 'as tinguis', req.path);
-    console.log(`--- [LOG DE IMAGEM] ---`);
-    console.log(`URL da Requisição: ${req.originalUrl}`);
-    console.log(`Caminho do arquivo no servidor: ${fullPath}`);
-    next();
+    console.error(`\n--- [ERRO 404 - IMAGEM NÃO ENCONTRADA] ---`);
+    console.error(`URL da Requisição: ${req.originalUrl}`);
+    console.error(`O arquivo "${req.path.substring(1)}" não foi encontrado em "${caminhoDaPastaDeImagens}".`);
+    console.error(`Verifique se o nome do arquivo está correto e se ele existe na pasta.\n`);
+    res.status(404).send(`Recurso não encontrado: ${req.originalUrl}`);
 });
-app.use('/imagem', express.static(path.join(__dirname, 'as tinguis')));
 
 app.get('/', (req, res) => {
     res.send('API funcionando');
@@ -426,5 +454,5 @@ app.use('/', upload);
 
 app.listen(9000, () => {
     const data = new Date();
-    console.log('Servidor inciado ass ' + data + "EM localhost:9000");
+    console.log('Servidor iniciado às ' + data + " em localhost:9000");
 })
