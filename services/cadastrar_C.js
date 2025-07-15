@@ -40,8 +40,9 @@ export async function cadastrar(email, senha) {
             throw new Error("Falha ao criar o usuário no banco de dados.");
         }
 
-        // 5. Criar a chave de autenticação (recomendo não incluir a senha aqui)
-        const key = gerarKey(novoId, email, senha);
+        // 5. Criar a chave de autenticação com a senha JÁ CRIPTOGRAFADA.
+        //    ATENÇÃO: O ideal é usar JWT e não incluir a senha na chave.
+        const key = gerarKey(novoId, email, senhaHasheada);
 
         return [resultadoInsert, key];
 
