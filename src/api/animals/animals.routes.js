@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const animalController = require('./animals.controller');
-const { verifyToken } = require('../../middlewares/auth.middleware');
-const upload = require('../../middlewares/upload.middleware');
+import * as animalController from './animals.controller.js';
+import { verifyToken } from '../../middlewares/auth.middleware.js';
+import upload from '../../middlewares/upload.middleware.js';
 
 // --- Rotas Públicas (não precisam de login) ---
 
@@ -24,4 +24,4 @@ router.post('/', verifyToken, upload.single('imagem_animal'), animalController.c
 // Endpoint: DELETE /api/animals/123
 router.delete('/:id', verifyToken, animalController.deleteAnimal);
 
-module.exports = router;
+export default router;

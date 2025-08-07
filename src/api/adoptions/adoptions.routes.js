@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const adoptionController = require('./adoptions.controller');
-const { verifyToken } = require('../../middlewares/auth.middleware');
+import * as adoptionController from './adoptions.controller.js';
+import { verifyToken } from '../../middlewares/auth.middleware.js';
 
 // Middleware para proteger todas as rotas deste arquivo
 router.use(verifyToken);
@@ -26,4 +26,4 @@ router.patch('/:id/cancel', adoptionController.cancelAdoptionRequest);
 // Endpoint: PATCH /api/adoptions/:id/resolve
 router.patch('/:id/resolve', adoptionController.resolveAdoptionRequest);
 
-module.exports = router;
+export default router;

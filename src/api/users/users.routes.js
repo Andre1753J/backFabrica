@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const userController = require('./users.controller');
-const { verifyToken } = require('../../middlewares/auth.middleware');
+import * as userController from './users.controller.js';
+import { verifyToken } from '../../middlewares/auth.middleware.js';
 
 // Middleware para proteger todas as rotas deste arquivo.
 // Qualquer requisição para /api/users/* precisará de um token válido.
@@ -19,4 +19,4 @@ router.put('/profile', userController.updateUserProfile);
 // Endpoint: DELETE /api/users/profile
 router.delete('/profile', userController.deleteUserProfile);
 
-module.exports = router;
+export default router;

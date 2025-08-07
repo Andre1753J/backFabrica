@@ -1,7 +1,7 @@
-const pool = require('../../config/database');
-const { calculateAge } = require('../../utils/ageCalculator');
+import pool from '../../config/database.js';
+import { calculateAge } from '../../utils/ageCalculator.js';
 
-async function create(animalData, ownerId, imageFile) {
+export async function create(animalData, ownerId, imageFile) {
   const { nome, data_nascimento, especie, porte, sexo, descricao } = animalData;
 
   if (!nome || !data_nascimento || !especie || !porte || !sexo) {
@@ -20,7 +20,7 @@ async function create(animalData, ownerId, imageFile) {
   return { id_animal: result.insertId, ...animalData, imagem_animal: imagePath };
 }
 
-async function findAll(filters) {
+export async function findAll(filters) {
   let query = `
     SELECT id_animal, nome, especie, porte, sexo, imagem_animal, data_nascimento
     FROM animal
@@ -51,7 +51,7 @@ async function findAll(filters) {
   }));
 }
 
-async function findById(animalId) {
+export async function findById(animalId) {
   const query = `
     SELECT a.*, c.nome as nome_dono, c.telefone as telefone_dono, c.cidade, c.estado
     FROM animal a
@@ -69,7 +69,7 @@ async function findById(animalId) {
   return animal;
 }
 
-async function remove(animalId, ownerId) {
+export async function remove(animalId, ownerId) {
   // Primeiro, verifica se o usuário que está tentando deletar é o dono do animal
   const [rows] = await pool.query('SELECT id_cliente_cadastrou FROM animal WHERE id_animal = ?', [animalId]);
   const animal = rows[0];
@@ -92,5 +92,3 @@ async function remove(animalId, ownerId) {
 
   return true;
 }
-
-module.exports = { create, findAll, findById, remove };

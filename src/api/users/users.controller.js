@@ -1,6 +1,6 @@
-const userService = require('./users.service');
+import * as userService from './users.service.js';
 
-async function getUserProfile(req, res) {
+export async function getUserProfile(req, res) {
   try {
     const userId = req.user.id; // ID do usuário vem do token decodificado
     const userProfile = await userService.getUserProfileById(userId);
@@ -10,7 +10,7 @@ async function getUserProfile(req, res) {
   }
 }
 
-async function updateUserProfile(req, res) {
+export async function updateUserProfile(req, res) {
   try {
     const userId = req.user.id;
     const updatedData = req.body;
@@ -21,7 +21,7 @@ async function updateUserProfile(req, res) {
   }
 }
 
-async function deleteUserProfile(req, res) {
+export async function deleteUserProfile(req, res) {
   try {
     const userId = req.user.id;
     await userService.deleteUserProfile(userId);
@@ -30,5 +30,3 @@ async function deleteUserProfile(req, res) {
     res.status(500).json({ message: error.message }); // 500 Internal Server Error
   }
 }
-
-module.exports = { getUserProfile, updateUserProfile, deleteUserProfile };

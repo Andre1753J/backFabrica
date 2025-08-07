@@ -1,6 +1,6 @@
-const animalService = require('./animals.service');
+import * as animalService from './animals.service.js';
 
-async function createAnimal(req, res) {
+export async function createAnimal(req, res) {
   try {
     const ownerId = req.user.id;
     const animalData = req.body;
@@ -13,7 +13,7 @@ async function createAnimal(req, res) {
   }
 }
 
-async function getAllAnimals(req, res) {
+export async function getAllAnimals(req, res) {
   try {
     const filters = req.query; // Filtros vêm da URL: ?especie=gato&sexo=femea
     const animals = await animalService.findAll(filters);
@@ -23,7 +23,7 @@ async function getAllAnimals(req, res) {
   }
 }
 
-async function getAnimalDetails(req, res) {
+export async function getAnimalDetails(req, res) {
   try {
     const { id } = req.params;
     const animal = await animalService.findById(id);
@@ -33,7 +33,7 @@ async function getAnimalDetails(req, res) {
   }
 }
 
-async function deleteAnimal(req, res) {
+export async function deleteAnimal(req, res) {
   try {
     const ownerId = req.user.id;
     const { id: animalId } = req.params;
@@ -43,5 +43,3 @@ async function deleteAnimal(req, res) {
     res.status(403).json({ message: error.message }); // 403 Forbidden (não é o dono)
   }
 }
-
-module.exports = { createAnimal, getAllAnimals, getAnimalDetails, deleteAnimal };

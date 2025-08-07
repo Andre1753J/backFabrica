@@ -1,6 +1,6 @@
-const adoptionService = require('./adoptions.service');
+import * as adoptionService from './adoptions.service.js';
 
-async function requestAdoption(req, res) {
+export async function requestAdoption(req, res) {
   try {
     const requesterId = req.user.id;
     const { animalId } = req.body;
@@ -11,7 +11,7 @@ async function requestAdoption(req, res) {
   }
 }
 
-async function getSentRequests(req, res) {
+export async function getSentRequests(req, res) {
   try {
     const requesterId = req.user.id;
     const adoptions = await adoptionService.findSentRequests(requesterId);
@@ -21,7 +21,7 @@ async function getSentRequests(req, res) {
   }
 }
 
-async function getReceivedRequests(req, res) {
+export async function getReceivedRequests(req, res) {
   try {
     const ownerId = req.user.id;
     const adoptions = await adoptionService.findReceivedRequests(ownerId);
@@ -31,11 +31,11 @@ async function getReceivedRequests(req, res) {
   }
 }
 
-async function cancelAdoptionRequest(req, res) {
+export async function cancelAdoptionRequest(req, res) {
   // Lógica para cancelar uma solicitação
 }
 
-async function resolveAdoptionRequest(req, res) {
+export async function resolveAdoptionRequest(req, res) {
   try {
     const ownerId = req.user.id;
     const { id: adoptionId } = req.params;
@@ -46,5 +46,3 @@ async function resolveAdoptionRequest(req, res) {
     res.status(403).json({ message: error.message });
   }
 }
-
-module.exports = { requestAdoption, getSentRequests, getReceivedRequests, cancelAdoptionRequest, resolveAdoptionRequest };

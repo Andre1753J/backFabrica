@@ -1,6 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// --- Polyfill para __dirname e __filename em ES Modules ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -10,19 +15,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Servir arquivos estáticos (imagens dos pets)
-app.use('/uploads', express.static(path.resolve(__dirname, '..', 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // --- Carregador de Rotas ---
 // Importa as rotas de autenticação que acabamos de criar
-const authRoutes = require('./api/auth/auth.routes');
-// const userRoutes = require('./api/users/users.routes');
-const animalRoutes = require('./api/animals/animals.routes');
-const adoptionRoutes = require('./api/adoptions/adoptions.routes');
+import authRoutes from './api/auth/auth.routes.js';
+import userRoutes from './api/users/users.routes.js';
+import animalRoutes from './api/animals/animals.routes.js';
+import adoptionRoutes from './api/adoptions/adoptions.routes.js';
 
 // Diz ao app para usar as rotas de autenticação no endereço /api/auth
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/animals', animalRoutes);
 app.use('/api/adoptions', adoptionRoutes);
 
-module.exports = app;
+export default app;

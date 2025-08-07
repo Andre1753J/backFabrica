@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const authController = require('./auth.controller');
+import * as authController from './auth.controller.js';
 
 // Rota para registrar um novo usuário (cliente)
 // Endpoint: POST /api/auth/register
@@ -10,4 +10,4 @@ router.post('/register', authController.registerUser);
 // Endpoint: POST /api/auth/login
 router.post('/login', authController.loginUser);
 
-module.exports = router;
+export default router;

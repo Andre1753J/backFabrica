@@ -1,12 +1,12 @@
-const pool = require('../../config/database');
-const bcrypt = require('bcrypt');
-const { calculateAge } = require('../../utils/ageCalculator');
-const { generateToken } = require('../../utils/jwtHelper');
+import pool from '../../config/database.js';
+import bcrypt from 'bcrypt';
+import { calculateAge } from '../../utils/ageCalculator.js';
+import { generateToken } from '../../utils/jwtHelper.js';
 
 /**
  * Busca o perfil de um usuário pelo seu ID.
  */
-async function getUserProfileById(userId) {
+export async function getUserProfileById(userId) {
   const query = 'SELECT id_cliente, nome, email, telefone, data_nascimento, rua, numero, cidade, estado, cep FROM cliente WHERE id_cliente = ?';
   const [rows] = await pool.query(query, [userId]);
   const user = rows[0];
@@ -24,7 +24,7 @@ async function getUserProfileById(userId) {
 /**
  * Atualiza o perfil de um usuário.
  */
-async function updateUserProfile(userId, updatedData) {
+export async function updateUserProfile(userId, updatedData) {
   const { nome, email, telefone, data_nascimento, rua, numero, cidade, estado, cep, senha } = updatedData;
 
   // Constrói a query de atualização dinamicamente
@@ -70,7 +70,7 @@ async function updateUserProfile(userId, updatedData) {
 /**
  * Deleta o perfil de um usuário.
  */
-async function deleteUserProfile(userId) {
+export async function deleteUserProfile(userId) {
   // IMPORTANTE: Aqui você pode precisar de uma lógica mais complexa,
   // como deletar ou desassociar os animais e adoções do usuário.
   // Por enquanto, vamos apenas deletar o usuário.
@@ -80,5 +80,3 @@ async function deleteUserProfile(userId) {
   }
   return true;
 }
-
-module.exports = { getUserProfileById, updateUserProfile, deleteUserProfile };

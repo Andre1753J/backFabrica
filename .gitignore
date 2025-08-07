@@ -1,3 +1,29 @@
+# Dependencies
+# A pasta node_modules é gerada ao rodar `npm install` e não deve ser versionada.
 /node_modules
-/.env
-/as tinguis
+
+# Environment Variables
+# Contém chaves de API, senhas de banco de dados e outros segredos.
+# É uma boa prática criar um arquivo .env.example com as variáveis necessárias.
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Uploaded files
+# Esta pasta contém arquivos enviados pelos usuários, como as fotos dos animais.
+/uploads/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/

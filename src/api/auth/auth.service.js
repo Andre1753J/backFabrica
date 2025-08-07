@@ -1,11 +1,11 @@
-const pool = require('../../config/database');
-const bcrypt = require('bcrypt');
-const { generateToken } = require('../../utils/jwtHelper');
+import pool from '../../config/database.js';
+import bcrypt from 'bcrypt';
+import { generateToken } from '../../utils/jwtHelper.js';
 
 /**
  * Registra um novo usuário no sistema.
  */
-async function registerUser(userData) {
+export async function registerUser(userData) {
   const { nome, email, senha, telefone, data_nascimento, rua, numero, cidade, estado, cep } = userData;
 
   // 1. Validação dos dados de entrada
@@ -48,7 +48,7 @@ async function registerUser(userData) {
 /**
  * Autentica um usuário e retorna um token.
  */
-async function loginUser(email, senha) {
+export async function loginUser(email, senha) {
   // 1. Buscar o usuário pelo e-mail
   const [rows] = await pool.query('SELECT * FROM cliente WHERE email = ?', [email]);
   const user = rows[0];
@@ -69,5 +69,3 @@ async function loginUser(email, senha) {
 
   return { user, token };
 }
-
-module.exports = { registerUser, loginUser };

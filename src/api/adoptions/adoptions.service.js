@@ -1,6 +1,6 @@
-const pool = require('../../config/database');
+import pool from '../../config/database.js';
 
-async function createRequest(requesterId, animalId) {
+export async function createRequest(requesterId, animalId) {
   if (!animalId) {
     throw new Error('O ID do animal é obrigatório.');
   }
@@ -28,7 +28,7 @@ async function createRequest(requesterId, animalId) {
   return { id_adocao: result.insertId, id_animal: animalId, id_cliente_solicitante: requesterId };
 }
 
-async function findSentRequests(requesterId) {
+export async function findSentRequests(requesterId) {
   const query = `
     SELECT a.id_adocao, an.nome as nome_animal, an.imagem_animal, a.data_solicitacao, a.status_adocao
     FROM adocao a
@@ -40,7 +40,7 @@ async function findSentRequests(requesterId) {
   return requests;
 }
 
-async function findReceivedRequests(ownerId) {
+export async function findReceivedRequests(ownerId) {
   const query = `
     SELECT a.id_adocao, an.nome as nome_animal, c.nome as nome_solicitante, c.email as email_solicitante, a.data_solicitacao, a.status_adocao
     FROM adocao a
@@ -53,7 +53,7 @@ async function findReceivedRequests(ownerId) {
   return requests;
 }
 
-async function resolveRequest(adoptionId, ownerId, status) {
+export async function resolveRequest(adoptionId, ownerId, status) {
   if (status !== 'aprovada' && status !== 'rejeitada') {
     throw new Error("Status inválido. Use 'aprovada' ou 'rejeitada'.");
   }
@@ -101,5 +101,3 @@ async function resolveRequest(adoptionId, ownerId, status) {
     connection.release(); // Libera a conexão de volta para o pool
   }
 }
-
-module.exports = { createRequest, findSentRequests, findReceivedRequests, resolveRequest };

@@ -1,6 +1,6 @@
-const authService = require('./auth.service');
+import * as authService from './auth.service.js';
 
-async function registerUser(req, res) {
+export async function registerUser(req, res) {
   try {
     const userData = req.body;
     // Chama o serviço para registrar o usuário
@@ -13,7 +13,7 @@ async function registerUser(req, res) {
   }
 }
 
-async function loginUser(req, res) {
+export async function loginUser(req, res) {
   try {
     const { email, senha } = req.body;
     // Chama o serviço para fazer o login
@@ -25,5 +25,3 @@ async function loginUser(req, res) {
     res.status(401).json({ message: error.message }); // 401 = Não autorizado
   }
 }
-
-module.exports = { registerUser, loginUser };
